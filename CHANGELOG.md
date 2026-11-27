@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.12.0] — 2026-11-27
+
+
 ### Added
 - **Linux and Windows** (REQ-XPLAT-*): the CLI, engine and desktop app run on
   macOS, Linux (glibc) and Windows (MSVC) with the same commands, envelopes
@@ -21,19 +24,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   Duplicates, Assistant, History and Settings, all on the engine. New CLI
   commands back each screen: `map`, `large`, `dupes`, `trash`, `agents`,
   `suggest`.
-
-### Changed
-- The project moved to `github.com/selvakumarEsra/disker`.
-- The minimum supported Rust version is 1.85.1, which the bundled DuckDB
-  already required. On Windows, building needs the Visual Studio 2022 C++
-  build tools.
-
-### Changed
-- **Behaviour change:** `disky cleanup` now leaves out anything modified in
-  the last 30 days by default (`skip_recently_used`). Run
-  `disky prefs --set skip_recently_used=false` for the previous behaviour.
-
-### Added
 - Preferences store (REQ-DSCR-001): one `prefs.json` in the data dir, shared
   by the CLI and the desktop GUI. `disky prefs [--format json]` prints every
   preference (`kind:"prefs"`); `disky prefs --set <key>=<value>` (repeatable,
@@ -77,6 +67,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   category ids in `gui/`.
 
 ### Changed
+- The project moved to `github.com/selvakumarEsra/disker`.
+- The minimum supported Rust version is 1.85.1, which the bundled DuckDB
+  already required. On Windows, building needs the Visual Studio 2022 C++
+  build tools.
+- **Behaviour change:** `disky cleanup` now leaves out anything modified in
+  the last 30 days by default (`skip_recently_used`). Run
+  `disky prefs --set skip_recently_used=false` for the previous behaviour.
 - `cleanup::apply(hits, mode, log)` now returns `ApplyOutcome { handled, failed, entry }`.
   `failed` lists skipped paths with a reason (`missing`, `already in Trash`,
   `move to Trash failed`).
