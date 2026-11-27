@@ -35,7 +35,7 @@ function undoAndFailureCopy() {
 
 function errorCopyDispatchesOnTheCode() {
   const held = new EngineError("lock-held", "Could not set lock", true);
-  expect(scanErrorMessage(held)).toBe("Another disky process is using the snapshot. Try again in a moment.");
+  expect(scanErrorMessage(held)).toBe("Another disker process is using the snapshot. Try again in a moment.");
   expect(LOCK_HELD_MESSAGE).toBe(scanErrorMessage(held));
   expect(canRetry(held)).toBe(true);
   // The message text alone never makes it a lock error.

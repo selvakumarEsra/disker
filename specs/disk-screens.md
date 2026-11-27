@@ -26,13 +26,13 @@ The CLI stays canonical (AGENTS.md "Surface scope"). Each new engine capability 
 
 Non-goals:
 - **Agent CLIs don't write text.** The Assistant never sends file contents anywhere, and in this version it doesn't call the selected agent CLI at all. Suggestion text is produced by the engine. The selected agent is recorded and named in the UI.
-- **No background service.** Scheduled scans, proactive checks and below-goal notifications run only while the disky app is running. No launchd agent is installed.
+- **No background service.** Scheduled scans, proactive checks and below-goal notifications run only while the disker app is running. No launchd agent is installed.
 - **No automatic cleaning.** Nothing on any screen cleans without an explicit user action, and every removal on these screens goes to the Trash.
 
 <!-- id: REQ-DSCR-001 -->
 ## Preferences MUST persist in one store shared by the CLI and the GUI
 
-The engine owns one preferences store in disky's data directory. It holds:
+The engine owns one preferences store in disker's data directory. It holds:
 - trash-by-default, skip-recently-used, safe-only preselection and warn-below-goal (the four Settings toggles);
 - the space goal in bytes;
 - proactive checks on/off and their frequency (`hourly`, `daily` or `weekly`);
@@ -95,9 +95,9 @@ verifies:
 
 **Acceptance**
 <!-- id: REQ-DSCR-001.A1 -->
-- `disky prefs --format json` prints every preference. `disky prefs --set <key>=<value>` changes one and prints the result. An unknown key or invalid value exits 2 (usage) and changes nothing.
+- `disker prefs --format json` prints every preference. `disker prefs --set <key>=<value>` changes one and prints the result. An unknown key or invalid value exits 2 (usage) and changes nothing.
 <!-- id: REQ-DSCR-001.A2 -->
-- A preference changed in the GUI is what `disky prefs` reads next, and the reverse: one store, no copies.
+- A preference changed in the GUI is what `disker prefs` reads next, and the reverse: one store, no copies.
 <!-- id: REQ-DSCR-001.A3 -->
 - A missing preferences file yields the defaults. A malformed file is reported as an error and never silently replaced.
 <!-- id: REQ-DSCR-001.A4 -->
@@ -168,7 +168,7 @@ verifies:
 
 **Acceptance**
 <!-- id: REQ-DSCR-003.A1 -->
-- `disky map [<path>] --snapshot <ref> --format json` returns the folder's immediate children, each with:
+- `disker map [<path>] --snapshot <ref> --format json` returns the folder's immediate children, each with:
   - name, absolute path and physical bytes (the sum of everything beneath it);
   - whether it has children of its own.
 
@@ -226,7 +226,7 @@ verifies:
 **Acceptance**
 <!-- id: REQ-DSCR-004.A1 -->
 - Scans record each file's last access time.
-- `disky large --snapshot <ref> --format json [--filter all|over-10gb|unused-1y]` lists regular files of at least 2 GB physical, largest first. Each file has:
+- `disker large --snapshot <ref> --format json [--filter all|over-10gb|unused-1y]` lists regular files of at least 2 GB physical, largest first. Each file has:
   - name and absolute path;
   - physical bytes;
   - last-opened time (RFC 3339);
@@ -282,7 +282,7 @@ verifies:
 
 **Acceptance**
 <!-- id: REQ-DSCR-005.A1 -->
-- `disky dupes --snapshot <ref> --format json [--min-size <bytes>]` groups regular files whose contents are byte-identical. It compares sizes first, then a full content hash, and never decides by name alone. Each group has:
+- `disker dupes --snapshot <ref> --format json [--min-size <bytes>]` groups regular files whose contents are byte-identical. It compares sizes first, then a full content hash, and never decides by name alone. Each group has:
   - a display name (the first copy's basename);
   - the bytes of each copy;
   - every copy's absolute path, oldest modification time first.
@@ -325,7 +325,7 @@ verifies:
 
 **Acceptance**
 <!-- id: REQ-DSCR-006.A1 -->
-- `disky trash <path>... --title <title> --format json` moves each path to the Trash. It reports the handled paths, the failed paths with reasons, and the physical bytes freed, then appends one history entry with that title (REQ-DCLEAN-034).
+- `disker trash <path>... --title <title> --format json` moves each path to the Trash. It reports the handled paths, the failed paths with reasons, and the physical bytes freed, then appends one history entry with that title (REQ-DCLEAN-034).
 <!-- id: REQ-DSCR-006.A2 -->
 - The GUI can trash only paths the engine listed in the large-files or duplicates result the user is looking at. Any other path is refused, exactly as `clean` refuses unreviewed paths (REQ-DCLEAN-029.A1).
 <!-- id: REQ-DSCR-006.A3 -->
@@ -360,7 +360,7 @@ verifies:
 
 **Acceptance**
 <!-- id: REQ-DSCR-007.A1 -->
-- `disky agents --format json` lists Claude Code (`claude`), Codex CLI (`codex`) and Gemini CLI (`gemini`), in that order. Each has `found` and, when found, the resolved path. Lookup covers `PATH` plus `~/.local/bin`, `/opt/homebrew/bin` and `/usr/local/bin`.
+- `disker agents --format json` lists Claude Code (`claude`), Codex CLI (`codex`) and Gemini CLI (`gemini`), in that order. Each has `found` and, when found, the resolved path. Lookup covers `PATH` plus `~/.local/bin`, `/opt/homebrew/bin` and `/usr/local/bin`.
 <!-- id: REQ-DSCR-007.A2 -->
 - Detection only checks for an executable file. It never runs the CLI.
 
@@ -397,7 +397,7 @@ verifies:
 
 **Acceptance**
 <!-- id: REQ-DSCR-008.A1 -->
-- `disky suggest --format json` returns suggestions in this order. Each has a key, a kind, its text, its bytes and its category ids.
+- `disker suggest --format json` returns suggestions in this order. Each has a key, a kind, its text, its bytes and its category ids.
   - **`goal`** (kind "Goal"), when free space is below the goal: offers the safe categories' total.
   - **`ok`** (kind "On track"), when free space is at or above the goal: no action, no bytes.
   - **`dev`** (kind "Suggestion"), when the developer categories have hits.
@@ -792,7 +792,7 @@ verifies:
 <!-- id: REQ-DSCR-015.A2 -->
 - Each row shows the trash icon, the entry title, "<when> · <detail>" and the freed size. "When" is a relative date. "Detail" is the category names, or for "Large files" and "Duplicates" entries the file names, or "<n> files" past three.
 <!-- id: REQ-DSCR-015.A3 -->
-- A trash entry younger than 30 days and not restored shows "Restore". Restore runs `disky restore` through the backend and refreshes the meter. Afterwards the row shows the "Restored" tag. Items no longer in the Trash are reported per REQ-DCLEAN-034.A4.
+- A trash entry younger than 30 days and not restored shows "Restore". Restore runs `disker restore` through the backend and refreshes the meter. Afterwards the row shows the "Restored" tag. Items no longer in the Trash are reported per REQ-DCLEAN-034.A4.
 <!-- id: REQ-DSCR-015.A4 -->
 - An entry 30 days or older shows the "Emptied" neutral tag. A delete-mode entry shows a "Deleted" neutral tag and no Restore (gap-fill).
 <!-- id: REQ-DSCR-015.A5 -->

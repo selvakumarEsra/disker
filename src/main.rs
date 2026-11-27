@@ -3,12 +3,12 @@ mod tui;
 
 use clap::Parser;
 use cli::{Cli, Command};
-use disky::config::Config;
-use disky::exit::{classify, DiskyError, ExitCode};
-use disky::policy::{apply_policy, Policy, SnapshotMeta};
-use disky::query::SCHEMA_VERSION;
-use disky::render::{resolve_format, Format};
-use disky::{cleanup, contract, db, history, prefs, query, render, scan, schema, snapshots};
+use disker::config::Config;
+use disker::exit::{classify, DiskerError, ExitCode};
+use disker::policy::{apply_policy, Policy, SnapshotMeta};
+use disker::query::SCHEMA_VERSION;
+use disker::render::{resolve_format, Format};
+use disker::{cleanup, contract, db, history, prefs, query, render, scan, schema, snapshots};
 use serde_json::json;
 use std::process::ExitCode as ProcExit;
 use std::sync::atomic::{AtomicBool, Ordering};
@@ -48,11 +48,11 @@ fn main() -> ProcExit {
     }
 }
 
-fn emit_error(err: &DiskyError, format: Format) {
+fn emit_error(err: &DiskerError, format: Format) {
     if format.is_machine() {
         let payload = json!({
             "schema_version": SCHEMA_VERSION,
-            "type": format!("https://disky.dev/errors/{}", err.code.slug()),
+            "type": format!("https://disker.dev/errors/{}", err.code.slug()),
             "title": err.title,
             "status": err.code as i32,
             "detail": err.detail,
@@ -97,7 +97,10 @@ fn dispatch(cli: Cli, format: Format) -> anyhow::Result<()> {
             if want_bundle {
                 let conn = db::open(&db_path)?;
                 let mut bundle = serde_json::Map::new();
-                bundle.insert("schema_version".into(), json!(disky::query::SCHEMA_VERSION));
+                bundle.insert(
+                    "schema_version".into(),
+                    json!(disker::query::SCHEMA_VERSION),
+                );
                 bundle.insert("kind".into(), json!("scan_bundle"));
                 bundle.insert("snapshot".into(), json!(db_path));
                 bundle.insert("complete".into(), json!(outcome.complete));
@@ -116,7 +119,7 @@ fn dispatch(cli: Cli, format: Format) -> anyhow::Result<()> {
             }
 
             if !outcome.complete {
-                return Err(disky::exit::DiskyError::new(
+                return Err(disker::exit::DiskerError::new(
                     ExitCode::PartialScan,
                     "scan cancelled",
                     format!(
@@ -241,7 +244,7 @@ fn dispatch(cli: Cli, format: Format) -> anyhow::Result<()> {
                 Some(_) => {
                     let root =
                         db::read_scan_meta(&conn).map_or_else(|| "/".to_string(), |m| m.root);
-                    Some(disky::contract::disk_near(std::path::Path::new(&root))?)
+                    Some(disker::contract::disk_near(std::path::Path::new(&root))?)
                 }
                 None => None,
             };
@@ -270,14 +273,14 @@ fn dispatch(cli: Cli, format: Format) -> anyhow::Result<()> {
         }
         Command::Filter { where_, limit } => {
             // Read prior envelope from stdin, filter, re-emit with kind="filter".
-            let env = disky::envelope::parse_json(std::io::stdin().lock())?;
-            disky::envelope::require_kind(
+            let env = disker::envelope::parse_json(std::io::stdin().lock())?;
+            disker::envelope::require_kind(
                 &env,
                 &[
                     "top", "find", "dirs", "ext", "empty", "old", "filter", "growth",
                 ],
             )?;
-            let pred = disky::filter::Predicate::parse(where_.as_deref().unwrap_or(""))?;
+            let pred = disker::filter::Predicate::parse(where_.as_deref().unwrap_or(""))?;
             let kept: Vec<serde_json::Value> = env
                 .records
                 .into_iter()
@@ -310,7 +313,7 @@ fn dispatch(cli: Cli, format: Format) -> anyhow::Result<()> {
             // 2-snapshot --since/--until/--over path. Routes early.
             if let Some(n) = over_n {
                 if n < 3 {
-                    return Err(DiskyError::new(
+                    return Err(DiskerError::new(
                         ExitCode::Usage,
                         "invalid --over-n",
                         format!("need N >= 3, got {n}"),
@@ -327,7 +330,7 @@ fn dispatch(cli: Cli, format: Format) -> anyhow::Result<()> {
                     })
                     .collect();
                 if parsed.len() < n {
-                    return Err(DiskyError::new(
+                    return Err(DiskerError::new(
                         ExitCode::NotFound,
                         "insufficient snapshots",
                         format!(
@@ -377,8 +380,8 @@ fn dispatch(cli: Cli, format: Format) -> anyhow::Result<()> {
             }
             // --over wins over --since. Pick oldest snapshot whose age >= window.
             let resolved_since = if let Some(ref dur) = over {
-                let secs = disky::duration::parse_seconds(dur).map_err(|e| {
-                    DiskyError::new(ExitCode::Usage, "invalid --over", e.to_string())
+                let secs = disker::duration::parse_seconds(dur).map_err(|e| {
+                    DiskerError::new(ExitCode::Usage, "invalid --over", e.to_string())
                 })?;
                 let cutoff = std::time::SystemTime::now()
                     .duration_since(std::time::UNIX_EPOCH)
@@ -398,7 +401,7 @@ fn dispatch(cli: Cli, format: Format) -> anyhow::Result<()> {
                 match oldest {
                     Some((p, _)) => p,
                     None => {
-                        return Err(DiskyError::new(
+                        return Err(DiskerError::new(
                             ExitCode::NotFound,
                             "no snapshot in window",
                             format!(
@@ -449,7 +452,7 @@ fn dispatch(cli: Cli, format: Format) -> anyhow::Result<()> {
             }
         }
         Command::Predict { free_bytes } => {
-            let rec = disky::predict::predict(physical, free_bytes)?;
+            let rec = disker::predict::predict(physical, free_bytes)?;
             if format.is_machine() {
                 let payload = json!({
                     "schema_version": SCHEMA_VERSION,
@@ -483,8 +486,8 @@ fn dispatch(cli: Cli, format: Format) -> anyhow::Result<()> {
             snapshot,
             limit,
         } => {
-            let secs = disky::duration::parse_seconds(&over)
-                .map_err(|e| DiskyError::new(ExitCode::Usage, "invalid --over", e.to_string()))?;
+            let secs = disker::duration::parse_seconds(&over)
+                .map_err(|e| DiskerError::new(ExitCode::Usage, "invalid --over", e.to_string()))?;
             let now = std::time::SystemTime::now()
                 .duration_since(std::time::UNIX_EPOCH)
                 .map(|d| d.as_secs() as i64)
@@ -550,8 +553,8 @@ fn dispatch(cli: Cli, format: Format) -> anyhow::Result<()> {
             snapshot,
             limit,
         } => {
-            let secs = disky::duration::parse_seconds(&older_than).map_err(|e| {
-                DiskyError::new(ExitCode::Usage, "invalid --older-than", e.to_string())
+            let secs = disker::duration::parse_seconds(&older_than).map_err(|e| {
+                DiskerError::new(ExitCode::Usage, "invalid --older-than", e.to_string())
             })?;
             let now = std::time::SystemTime::now()
                 .duration_since(std::time::UNIX_EPOCH)
@@ -597,7 +600,7 @@ fn dispatch(cli: Cli, format: Format) -> anyhow::Result<()> {
                 keep_yearly,
             };
             if p.is_empty() {
-                return Err(DiskyError::new(
+                return Err(DiskerError::new(
                     ExitCode::Usage,
                     "no retention policy",
                     "pass at least one --keep-last / --keep-daily / --keep-weekly / --keep-monthly / --keep-yearly",
@@ -621,7 +624,7 @@ fn dispatch(cli: Cli, format: Format) -> anyhow::Result<()> {
             if apply {
                 for s in &plan.removed {
                     std::fs::remove_file(&s.path).map_err(|e| {
-                        DiskyError::io(format!("failed to remove {}: {}", s.path, e))
+                        DiskerError::io(format!("failed to remove {}: {}", s.path, e))
                     })?;
                 }
             }
@@ -656,12 +659,12 @@ fn dispatch(cli: Cli, format: Format) -> anyhow::Result<()> {
             snapshot,
         } => {
             let db = snapshots::resolve(&snapshot)?;
-            let home = disky::platform::home_dir();
-            let path = path.map(|p| disky::platform::expand_user(&p, home.as_deref()));
+            let home = disker::platform::home_dir();
+            let path = path.map(|p| disker::platform::expand_user(&p, home.as_deref()));
             let p = prefs::load(&prefs::prefs_path())?;
             let mut view = contract::map_view(&db, path.as_deref(), &p)?;
             if let Some(n) = tiles {
-                view = view.fold(n, disky::map::MIN_TILE_SHARE);
+                view = view.fold(n, disker::map::MIN_TILE_SHARE);
             }
             render::map(&view, format)?;
         }
@@ -679,12 +682,12 @@ fn dispatch(cli: Cli, format: Format) -> anyhow::Result<()> {
         }
         Command::Trash { paths, title } => {
             let cwd = std::env::current_dir()?;
-            let home = disky::platform::home_dir();
+            let home = disker::platform::home_dir();
             let paths: Vec<String> = paths
                 .into_iter()
                 .map(|p| {
-                    let expanded = disky::platform::expand_user(&p, home.as_deref());
-                    disky::platform::to_slash(&cwd.join(expanded))
+                    let expanded = disker::platform::expand_user(&p, home.as_deref());
+                    disker::platform::to_slash(&cwd.join(expanded))
                 })
                 .collect();
             // Named on the command line = reviewed by the user (REQ-DSCR-006).
@@ -703,7 +706,7 @@ fn dispatch(cli: Cli, format: Format) -> anyhow::Result<()> {
             render::restore(&report, format)?;
         }
         Command::Agents => {
-            render::agents(&disky::agents::detect(), format)?;
+            render::agents(&disker::agents::detect(), format)?;
         }
         Command::Suggest { snapshot } => {
             let p = prefs::load(&prefs::prefs_path())?;
@@ -714,7 +717,7 @@ fn dispatch(cli: Cli, format: Format) -> anyhow::Result<()> {
                 Some(snapshots::resolve(&snapshot)?)
             };
             let (view, hits) = contract::assistant_inputs(db.as_deref(), &p)?;
-            let home = disky::platform::home_dir();
+            let home = disker::platform::home_dir();
             let records = contract::suggestions_for(
                 &view,
                 &hits,
@@ -752,7 +755,7 @@ fn dispatch(cli: Cli, format: Format) -> anyhow::Result<()> {
                 });
                 println!("{}", payload);
             } else if snaps.is_empty() {
-                println!("No snapshots found. Run `disky scan` first.");
+                println!("No snapshots found. Run `disker scan` first.");
             } else {
                 for (path, size) in snaps {
                     let id = snapshots::id_for(&path).unwrap_or_default();

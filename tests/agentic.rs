@@ -7,12 +7,12 @@ use std::fs;
 use std::path::PathBuf;
 use std::process::Command;
 
-fn disky_bin() -> PathBuf {
+fn disker_bin() -> PathBuf {
     // Cargo sets this for integration tests; robust to the build-dir layout.
-    let candidate = PathBuf::from(env!("CARGO_BIN_EXE_disky"));
+    let candidate = PathBuf::from(env!("CARGO_BIN_EXE_disker"));
     assert!(
         candidate.exists(),
-        "disky binary not built at {} — `cargo test` should build it",
+        "disker binary not built at {} — `cargo test` should build it",
         candidate.display()
     );
     candidate
@@ -25,9 +25,9 @@ fn temp_dir() -> PathBuf {
     // One level below a shared folder: on Linux `/tmp` is itself a
     // cleanup location (`temp`, REQ-XPLAT-005), so a home directly in it
     // would be reported whole and hide what it holds. Its child
-    // `/tmp/disky-it` lies above the scan root and is never in scope.
+    // `/tmp/disker-it` lies above the scan root and is never in scope.
     let mut d = std::env::temp_dir();
-    d.push("disky-it");
+    d.push("disker-it");
     d.push(format!("{}-{}", std::process::id(), id));
     let _ = fs::remove_dir_all(&d);
     fs::create_dir_all(&d).unwrap();
@@ -41,7 +41,7 @@ fn scan_tiny_tree() -> (PathBuf, PathBuf) {
     fs::write(dir.join("b.txt"), vec![0u8; 1024]).unwrap();
     fs::write(dir.join("sub/c.png"), vec![0u8; 8192]).unwrap();
     let db = dir.join("snap.db");
-    let out = Command::new(disky_bin())
+    let out = Command::new(disker_bin())
         .args(["scan"])
         .arg(&dir)
         .args(["--db"])
@@ -53,7 +53,7 @@ fn scan_tiny_tree() -> (PathBuf, PathBuf) {
 }
 
 fn run_json(args: &[&str]) -> Value {
-    let out = Command::new(disky_bin()).args(args).output().unwrap();
+    let out = Command::new(disker_bin()).args(args).output().unwrap();
     assert!(out.status.success(), "{:?} failed: {:?}", args, out);
     let body = String::from_utf8(out.stdout).unwrap();
     serde_json::from_str(body.trim()).expect("valid JSON")
@@ -97,7 +97,7 @@ fn stats_reports_partial_flag() {
 
 #[test]
 fn missing_snapshot_exits_not_found() {
-    let out = Command::new(disky_bin())
+    let out = Command::new(disker_bin())
         .args(["stats", "--snapshot", "no-such-id-xyz", "--format", "json"])
         .output()
         .unwrap();
@@ -105,13 +105,13 @@ fn missing_snapshot_exits_not_found() {
     let err = String::from_utf8(out.stderr).unwrap();
     let v: Value = serde_json::from_str(err.trim()).expect("RFC 9457 JSON on stderr");
     assert_eq!(v["status"], 4);
-    assert_eq!(v["type"], "https://disky.dev/errors/not-found");
+    assert_eq!(v["type"], "https://disker.dev/errors/not-found");
 }
 
 #[test]
 fn schema_emits_descriptor() {
     let v = run_json(&["schema"]);
-    assert_eq!(v["tool"], "disky");
+    assert_eq!(v["tool"], "disker");
     assert!(v["commands"].as_array().unwrap().len() >= 8);
     assert!(v["records"]["FileRow"].is_object());
 }
@@ -139,7 +139,7 @@ fn diff_classifies_added_removed_grew() {
     fs::write(dir.join("grew.bin"), vec![0u8; 1024]).unwrap();
     fs::write(dir.join("removed.bin"), vec![0u8; 2048]).unwrap();
     let snap_a = dir.join("a.db");
-    let out = Command::new(disky_bin())
+    let out = Command::new(disker_bin())
         .args(["scan"])
         .arg(&dir)
         .args(["--db"])
@@ -153,7 +153,7 @@ fn diff_classifies_added_removed_grew() {
     fs::write(dir.join("grew.bin"), vec![0u8; 8192]).unwrap();
     fs::write(dir.join("added.bin"), vec![0u8; 512]).unwrap();
     let snap_b = dir.join("b.db");
-    let out = Command::new(disky_bin())
+    let out = Command::new(disker_bin())
         .args(["scan"])
         .arg(&dir)
         .args(["--db"])
@@ -200,7 +200,7 @@ fn scan_emit_bundle_includes_top_and_stats() {
     fs::write(dir.join("big.bin"), vec![0u8; 16 * 1024]).unwrap();
     fs::write(dir.join("small.txt"), vec![0u8; 64]).unwrap();
     let db = dir.join("snap.db");
-    let out = Command::new(disky_bin())
+    let out = Command::new(disker_bin())
         .args(["scan"])
         .arg(&dir)
         .args(["--db"])
@@ -218,17 +218,17 @@ fn scan_emit_bundle_includes_top_and_stats() {
     assert!(!v["ext"].as_array().unwrap().is_empty());
 }
 
-/// Point every per-user folder disky reads at `home`, on every OS
+/// Point every per-user folder disker reads at `home`, on every OS
 /// (REQ-XPLAT-002): `HOME`, `USERPROFILE`, `%LOCALAPPDATA%`, `%APPDATA%`.
 /// On Windows the Recycle Bin lives on the drive, not in the home, so the
-/// Trash root is pinned under `home` too (`DISKY_TRASH_ROOT`).
+/// Trash root is pinned under `home` too (`DISKER_TRASH_ROOT`).
 fn in_home<'a>(cmd: &'a mut Command, home: &std::path::Path) -> &'a mut Command {
     cmd.env("HOME", home)
         .env("USERPROFILE", home)
         .env("LOCALAPPDATA", home.join("AppData/Local"))
         .env("APPDATA", home.join("AppData/Roaming"));
     if cfg!(windows) {
-        cmd.env("DISKY_TRASH_ROOT", home.join("RecycleBin"));
+        cmd.env("DISKER_TRASH_ROOT", home.join("RecycleBin"));
     }
     cmd
 }
@@ -260,7 +260,7 @@ fn trash_count(home: &std::path::Path) -> usize {
 
 /// A path as the engine prints it: `/` separators on every OS.
 fn slash(p: &std::path::Path) -> String {
-    disky::platform::to_slash(p)
+    disker::platform::to_slash(p)
 }
 
 /// The per-OS app cache folder under `home` (REQ-XPLAT-005).
@@ -274,15 +274,15 @@ fn app_cache_dir(home: &std::path::Path) -> PathBuf {
     }
 }
 
-/// Run disky with `HOME` pointed at `home`, so the Trash, the data dir and
+/// Run disker with `HOME` pointed at `home`, so the Trash, the data dir and
 /// the clean-history log all live under the test's temp dir — never the
 /// real user's.
 fn run_in_home(home: &std::path::Path, args: &[&str]) -> std::process::Output {
-    in_home(&mut Command::new(disky_bin()), home)
+    in_home(&mut Command::new(disker_bin()), home)
         .env_remove("XDG_DATA_HOME")
-        .env_remove("DISKY_CONFIG_PATH")
-        .env_remove("DISKY_FORMAT")
-        .env_remove("DISKY_SNAPSHOT")
+        .env_remove("DISKER_CONFIG_PATH")
+        .env_remove("DISKER_FORMAT")
+        .env_remove("DISKER_SNAPSHOT")
         .args(args)
         .output()
         .unwrap()
@@ -469,7 +469,7 @@ fn cleanup_summarises_by_category() {
     fs::write(dir.join("p2/node_modules/b.js"), vec![0u8; 1024]).unwrap();
     fs::write(dir.join("p1/target/blob"), vec![0u8; 8192]).unwrap();
     let db = dir.join("snap.db");
-    let out = Command::new(disky_bin())
+    let out = Command::new(disker_bin())
         .args(["scan"])
         .arg(&dir)
         .args(["--db"])
@@ -521,7 +521,7 @@ fn stats_summarize_emits_scalar_envelope() {
 #[test]
 fn stats_raw_emits_bare_integer() {
     let (_dir, db) = scan_tiny_tree();
-    let out = Command::new(disky_bin())
+    let out = Command::new(disker_bin())
         .args(["stats", "--snapshot"])
         .arg(&db)
         .args(["--raw"])
@@ -538,8 +538,8 @@ fn stats_raw_emits_bare_integer() {
 
 #[test]
 fn gui_categories_match_cli_cleanup_totals() {
-    // REQ-DCLEAN-001.A1 — the GUI's category list (`disky::contract`) and
-    // `disky cleanup --format json` agree on the same snapshot.
+    // REQ-DCLEAN-001.A1 — the GUI's category list (`disker::contract`) and
+    // `disker cleanup --format json` agree on the same snapshot.
     let home = home_including_recent();
     let root = home.join("work");
     fs::create_dir_all(root.join("p1/node_modules/deep")).unwrap();
@@ -557,7 +557,7 @@ fn gui_categories_match_cli_cleanup_totals() {
     );
     assert!(out.status.success(), "scan: {:?}", out);
 
-    let limit = disky::contract::VIEW_LIMIT.to_string();
+    let limit = disker::contract::VIEW_LIMIT.to_string();
     let v = json_in_home(
         &home,
         &[
@@ -586,14 +586,14 @@ fn gui_categories_match_cli_cleanup_totals() {
         })
         .collect();
 
-    let conn = disky::db::open(db.to_str().unwrap()).unwrap();
-    let mut ctx = disky::cleanup::ScanContext::from_snapshot(&conn);
+    let conn = disker::db::open(db.to_str().unwrap()).unwrap();
+    let mut ctx = disker::cleanup::ScanContext::from_snapshot(&conn);
     ctx.home = Some(home.clone()); // the CLI ran with HOME = `home`
-    let prefs = disky::prefs::load(&prefs_file(&home)).unwrap();
+    let prefs = disker::prefs::load(&prefs_file(&home)).unwrap();
     let ctx = ctx.with_prefs(&prefs);
-    let hits = disky::contract::view_hits_with(&conn, &ctx).unwrap();
+    let hits = disker::contract::view_hits_with(&conn, &ctx).unwrap();
     let gui: std::collections::BTreeMap<String, (u64, u64, String)> =
-        disky::contract::categories_from_hits(&hits)
+        disker::contract::categories_from_hits(&hits)
             .into_iter()
             .map(|c| {
                 (
@@ -623,10 +623,10 @@ fn prefs_file(home: &std::path::Path) -> PathBuf {
     } else {
         home.join(".local/share")
     };
-    data.join("disky/prefs.json")
+    data.join("disker/prefs.json")
 }
 
-/// REQ-DSCR-001.A1: `disky prefs` prints every key with its default.
+/// REQ-DSCR-001.A1: `disker prefs` prints every key with its default.
 #[test]
 fn prefs_prints_every_key_with_its_default() {
     let home = temp_dir();
@@ -670,10 +670,10 @@ fn prefs_set_persists_and_is_shared_with_the_library() {
     let again = json_in_home(&home, &["prefs", "--format", "json"]);
     assert_eq!(again["records"][0]["safe_only"], false);
     assert_eq!(again["records"][0]["goal_bytes"], 100_000_000_000u64);
-    let lib = disky::prefs::load(&prefs_file(&home)).unwrap();
+    let lib = disker::prefs::load(&prefs_file(&home)).unwrap();
     assert!(!lib.safe_only);
     // …and the reverse: a library write (the GUI's set_prefs) is what the CLI reads.
-    disky::prefs::set(&prefs_file(&home), "agent", "gemini").unwrap();
+    disker::prefs::set(&prefs_file(&home), "agent", "gemini").unwrap();
     let cli = json_in_home(&home, &["prefs", "--format", "json"]);
     assert_eq!(cli["records"][0]["agent"], "gemini");
     let _ = fs::remove_dir_all(&home);
@@ -699,7 +699,7 @@ fn prefs_bad_key_or_value_exits_usage_and_changes_nothing() {
         assert_eq!(out.status.code(), Some(2), "{bad:?}: {out:?}");
         let err: Value =
             serde_json::from_str(String::from_utf8(out.stderr).unwrap().trim()).unwrap();
-        assert_eq!(err["type"], "https://disky.dev/errors/usage");
+        assert_eq!(err["type"], "https://disker.dev/errors/usage");
         assert_eq!(
             fs::read(&file).unwrap(),
             before,
@@ -838,7 +838,7 @@ fn schema_lists_the_prefs_command() {
     assert!(v["records"]["Prefs"].is_object());
 }
 
-/// REQ-DSCR-015 parity: `disky history` records are the GUI's History rows
+/// REQ-DSCR-015 parity: `disker history` records are the GUI's History rows
 /// (entry + `detail` + `state`) and the envelope carries the total cleared.
 #[test]
 fn history_records_carry_detail_state_and_total() {
@@ -848,7 +848,7 @@ fn history_records_carry_detail_state_and_total() {
     let h = json_in_home(&home, &["history", "--format", "json"]);
     let rec = &h["records"][0];
     assert_eq!(rec["state"], "restorable", "{h}");
-    let label = disky::cleanup::category("node_modules").unwrap().label;
+    let label = disker::cleanup::category("node_modules").unwrap().label;
     assert_eq!(rec["detail"], label);
     let total = h["total_bytes"].as_u64().expect("total_bytes");
     assert_eq!(total, rec["bytes"].as_u64().unwrap());
@@ -865,7 +865,7 @@ fn history_records_carry_detail_state_and_total() {
     let _ = fs::remove_dir_all(&home);
 }
 
-/// REQ-DSCR-003.A1–A3 through the CLI: `disky map` lists the scan root's
+/// REQ-DSCR-003.A1–A3 through the CLI: `disker map` lists the scan root's
 /// immediate children by physical bytes, drills into a folder, carries the
 /// total and capacity, and exits 4 for a folder outside the snapshot.
 #[test]
@@ -942,7 +942,7 @@ fn map_lists_children_largest_first_and_outside_exits_not_found() {
     );
     assert_eq!(out.status.code(), Some(4));
     let err: Value = serde_json::from_str(String::from_utf8(out.stderr).unwrap().trim()).unwrap();
-    assert_eq!(err["type"], "https://disky.dev/errors/not-found");
+    assert_eq!(err["type"], "https://disker.dev/errors/not-found");
 
     // Excluded folders are left out (REQ-DSCR-002.A1).
     json_in_home(
@@ -978,8 +978,8 @@ fn schema_lists_the_map_command_and_history_rows() {
 fn large_fixture(dir: &std::path::Path) -> PathBuf {
     const GB: i64 = 1_000_000_000;
     let db = dir.join("large.db");
-    let conn = disky::db::open(db.to_str().unwrap()).unwrap();
-    disky::db::create_schema(&conn).unwrap();
+    let conn = disker::db::open(db.to_str().unwrap()).unwrap();
+    disker::db::create_schema(&conn).unwrap();
     let now = chrono::Utc::now().timestamp();
     let old = now - 400 * 86_400;
     // Real (tiny) files: `large` leaves out files deleted since the scan.
@@ -1008,7 +1008,7 @@ fn large_fixture(dir: &std::path::Path) -> PathBuf {
         )
         .unwrap();
     }
-    disky::db::write_scan_meta(
+    disker::db::write_scan_meta(
         &conn,
         data.to_str().unwrap(),
         old,
@@ -1283,7 +1283,7 @@ fn schema_lists_the_dupes_command() {
     assert!(v["records"]["DupeGroup"].is_object());
 }
 
-/// REQ-DSCR-007.A1, A2: `disky agents` lists claude, codex and gemini in that
+/// REQ-DSCR-007.A1, A2: `disker agents` lists claude, codex and gemini in that
 /// order, finds an executable on PATH, and never runs it.
 #[cfg(unix)]
 #[test]
@@ -1296,12 +1296,12 @@ fn agents_lists_three_in_order_and_never_runs_them() {
     let exe = bin.join("codex");
     fs::write(&exe, format!("#!/bin/sh\ntouch '{}'\n", marker.display())).unwrap();
     fs::set_permissions(&exe, fs::Permissions::from_mode(0o755)).unwrap();
-    let out = Command::new(disky_bin())
+    let out = Command::new(disker_bin())
         .env("HOME", &home)
         .env("USERPROFILE", &home)
         .env("PATH", &bin)
-        .env_remove("DISKY_CONFIG_PATH")
-        .env_remove("DISKY_FORMAT")
+        .env_remove("DISKER_CONFIG_PATH")
+        .env_remove("DISKER_FORMAT")
         .args(["agents", "--format", "json"])
         .output()
         .unwrap();
@@ -1319,7 +1319,7 @@ fn agents_lists_three_in_order_and_never_runs_them() {
     assert!(!marker.exists(), "detection ran the CLI");
 }
 
-/// REQ-DSCR-008.A1, A3: `disky suggest` reports `ok` (free at or above a tiny
+/// REQ-DSCR-008.A1, A3: `disker suggest` reports `ok` (free at or above a tiny
 /// goal) and `dev` for a scanned node_modules — with checks off too — and
 /// only goal/ok with no snapshot.
 #[test]
@@ -1405,7 +1405,7 @@ fn snapshot_stays_readable_while_another_reader_holds_it() {
     );
     assert!(out.status.success(), "scan: {:?}", out);
 
-    let held = disky::db::open_read(db.to_str().unwrap()).unwrap();
+    let held = disker::db::open_read(db.to_str().unwrap()).unwrap();
     let n: i64 = held
         .query_row("SELECT count(*) FROM files", [], |r| r.get(0))
         .unwrap();

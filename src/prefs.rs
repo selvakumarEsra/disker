@@ -2,7 +2,7 @@
 //!
 //! One JSON file, `<data dir>/prefs.json`, next to the snapshots and the
 //! clean history. The `.json` extension keeps it out of `@latest` and
-//! `disky list`, which only look at `*.db`. `disky prefs` reads and edits it;
+//! `disker list`, which only look at `*.db`. `disker prefs` reads and edits it;
 //! the GUI's Settings screen calls the same [`set`] through its backend, so a
 //! change on either side is what the other reads next (A2).
 //!
@@ -22,7 +22,7 @@ use serde::{Deserialize, Serialize};
 use std::fs;
 use std::path::{Path, PathBuf};
 
-use crate::exit::{DiskyError, ExitCode};
+use crate::exit::{DiskerError, ExitCode};
 use crate::history::Lock;
 
 /// Default space goal: the design snapshot's 80 GB, decimal.
@@ -34,7 +34,7 @@ pub const RECENT_DAYS: i64 = 30;
 /// Agent CLIs the Assistant can name, in display order (REQ-DSCR-007).
 pub const AGENT_IDS: &[&str] = &["claude", "codex", "gemini"];
 
-/// Every key `disky prefs --set` accepts, in [`Prefs`] field order.
+/// Every key `disker prefs --set` accepts, in [`Prefs`] field order.
 pub const KEYS: &[&str] = &[
     "trash_by_default",
     "skip_recently_used",
@@ -74,7 +74,7 @@ pub struct Checks {
     pub frequency: Frequency,
 }
 
-/// Every preference. Field names are the `disky prefs` keys (nested ones
+/// Every preference. Field names are the `disker prefs` keys (nested ones
 /// dotted: `checks.enabled`).
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(default, deny_unknown_fields)]
@@ -193,7 +193,7 @@ pub fn load(path: &Path) -> Result<Prefs> {
         Err(e) => return Err(e).with_context(|| format!("reading {}", path.display())),
     };
     let prefs: Prefs = serde_json::from_slice(&raw).map_err(|e| {
-        DiskyError::new(
+        DiskerError::new(
             ExitCode::Generic,
             "malformed preferences",
             format!(
@@ -285,7 +285,7 @@ pub fn apply(prefs: &mut Prefs, key: &str, value: &str) -> Result<()> {
 }
 
 fn usage(detail: String) -> anyhow::Error {
-    DiskyError::new(ExitCode::Usage, "invalid preference", detail).into()
+    DiskerError::new(ExitCode::Usage, "invalid preference", detail).into()
 }
 
 fn parse_bool(key: &str, v: &str) -> Result<bool> {

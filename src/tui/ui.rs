@@ -24,7 +24,7 @@ pub fn render(frame: &mut Frame, app: &App, list_state: &mut ListState) {
     // header
     let mut header_spans = vec![
         Span::styled(
-            " disky ",
+            " disker ",
             Style::default()
                 .fg(Color::Black)
                 .bg(Color::Cyan)

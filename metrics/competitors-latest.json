@@ -1,7 +1,7 @@
 {
   "results": [
     {
-      "command": "disky",
+      "command": "disker",
       "mean": 0.04789319190000001,
       "stddev": 0.0007064668756556822,
       "median": 0.04756776670000001,
@@ -156,7 +156,7 @@
       ]
     }
   ],
-  "tree_path": "/tmp/disky-bench-tree-10000",
+  "tree_path": "/tmp/disker-bench-tree-10000",
   "tree_files": 10000,
   "tree_bytes": 274432000,
   "ts": "2026-05-22T07:43:59Z"

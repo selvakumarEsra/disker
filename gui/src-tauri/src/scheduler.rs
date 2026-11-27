@@ -16,12 +16,12 @@
 //! * A4: [`Action`] has no variant that cleans, trashes or deletes, and the
 //!   driver only reloads, scans and notifies (see the tests).
 //!
-//! The periods come from the engine (`disky::assistant`).
+//! The periods come from the engine (`disker::assistant`).
 //!
 //! @implements REQ-DSCR-011
 
-use disky::assistant::{check_period_secs, format_bytes, scan_due};
-use disky::prefs::{Frequency, Schedule};
+use disker::assistant::{check_period_secs, format_bytes, scan_due};
+use disker::prefs::{Frequency, Schedule};
 
 /// "Now", in unix seconds.
 pub trait Clock: Send + Sync {

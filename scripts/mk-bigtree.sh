@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 # Deterministic synthetic tree for competitor benchmarks.
-# Generates `/tmp/disky-bench-tree-<N>/` with N files at depth ≤ 4.
+# Generates `/tmp/disker-bench-tree-<N>/` with N files at depth ≤ 4.
 #
 # Usage:
-#   bash scripts/mk-bigtree.sh 10000           # 10k files in /tmp/disky-bench-tree-10000
+#   bash scripts/mk-bigtree.sh 10000           # 10k files in /tmp/disker-bench-tree-10000
 #   bash scripts/mk-bigtree.sh 10000 /tmp/foo  # custom dir
 #
 # Idempotent: if the target already has exactly N files, no-op.
@@ -11,7 +11,7 @@
 set -euo pipefail
 
 N=${1:-10000}
-DIR=${2:-/tmp/disky-bench-tree-$N}
+DIR=${2:-/tmp/disker-bench-tree-$N}
 
 existing=0
 if [ -d "$DIR" ]; then

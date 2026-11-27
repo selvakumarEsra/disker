@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Competitor benchmark via hyperfine. Compares disky scan against
+# Competitor benchmark via hyperfine. Compares disker scan against
 # dust / dua / gdu / pdu / du on a synthetic tree.
 #
 # Output: metrics/competitors-latest.json (machine-readable)
@@ -18,21 +18,21 @@ cd "$ROOT"
 mkdir -p metrics
 
 N=${1:-10000}
-TREE=/tmp/disky-bench-tree-$N
+TREE=/tmp/disker-bench-tree-$N
 
 # Ensure tree exists
 bash scripts/mk-bigtree.sh "$N" "$TREE"
 
-# Ensure disky release binary exists
-if [ ! -x target/release/disky ]; then
-    echo "→ building disky --release (first run)"
-    cargo build --release --bin disky >/dev/null
+# Ensure disker release binary exists
+if [ ! -x target/release/disker ]; then
+    echo "→ building disker --release (first run)"
+    cargo build --release --bin disker >/dev/null
 fi
 
 # Discover competitor binaries — parallel arrays (works on macOS bash 3.2)
-NAMES=(disky dust dua gdu du)
+NAMES=(disker dust dua gdu du)
 CMDS=(
-    "$ROOT/target/release/disky scan $TREE --db /tmp/disky-bench.db"
+    "$ROOT/target/release/disker scan $TREE --db /tmp/disker-bench.db"
     "dust -d 0 $TREE"
     "dua aggregate $TREE"
     "gdu-go -np $TREE"
@@ -51,7 +51,7 @@ for i in "${!NAMES[@]}"; do
     name="${NAMES[$i]}"
     cmd="${CMDS[$i]}"
     bin=$(echo "$cmd" | awk '{print $1}')
-    if [ "$name" = "disky" ] || command -v "$bin" >/dev/null 2>&1; then
+    if [ "$name" = "disker" ] || command -v "$bin" >/dev/null 2>&1; then
         ACTIVE_NAMES+=("$name")
         ACTIVE_CMDS+=("$cmd")
     fi

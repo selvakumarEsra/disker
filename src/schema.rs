@@ -1,5 +1,5 @@
-//! Static JSON-Schema-ish descriptor for disky's machine-facing surface.
-//! Emitted via `disky schema` so agents can bind to commands and output
+//! Static JSON-Schema-ish descriptor for disker's machine-facing surface.
+//! Emitted via `disker schema` so agents can bind to commands and output
 //! shapes without prompt-engineering.
 
 use serde_json::{json, Value};
@@ -10,7 +10,7 @@ use crate::query::SCHEMA_VERSION;
 pub fn document() -> Value {
     json!({
         "schema_version": SCHEMA_VERSION,
-        "tool": "disky",
+        "tool": "disker",
         "version": env!("CARGO_PKG_VERSION"),
         "commands": commands(),
         "records": records(),
@@ -112,7 +112,7 @@ fn commands() -> Value {
         {
             "name": "trash",
             "args": { "paths": "string[] (required; named paths count as reviewed)", "title": "string (history entry title, default 'Cleanup')" },
-            "output": "trash envelope: {kind:'trash', handled:[string], failed:[{path, reason}], freed_physical_bytes:u64, history_id:string?, disk:{volume, capacity_bytes, free_bytes}} — one history entry with the given title; restorable via `disky restore <id>`"
+            "output": "trash envelope: {kind:'trash', handled:[string], failed:[{path, reason}], freed_physical_bytes:u64, history_id:string?, disk:{volume, capacity_bytes, free_bytes}} — one history entry with the given title; restorable via `disker restore <id>`"
         },
         {
             "name": "map",
@@ -241,9 +241,19 @@ mod tests {
     use super::*;
 
     #[test]
+    fn schema_reports_disker() {
+        let doc = document();
+        assert_eq!(doc["tool"], "disker");
+        for e in doc["errors"].as_array().unwrap() {
+            let t = e["type"].as_str().unwrap();
+            assert!(t.starts_with("https://disker.dev/errors/"), "{t}");
+        }
+    }
+
+    #[test]
     fn document_top_level_keys_are_stable() {
         let doc = document();
-        assert_eq!(doc["tool"], "disky");
+        assert_eq!(doc["tool"], "disker");
         assert_eq!(doc["schema_version"], SCHEMA_VERSION);
         assert!(doc["commands"].is_array());
         assert!(doc["records"].is_object());
@@ -368,12 +378,12 @@ mod tests {
 
 fn errors() -> Value {
     json!([
-        { "code": 0, "slug": "ok",           "type": "https://disky.dev/errors/ok",           "retryable": false },
-        { "code": 1, "slug": "generic",      "type": "https://disky.dev/errors/generic",      "retryable": false },
-        { "code": 2, "slug": "usage",        "type": "https://disky.dev/errors/usage",        "retryable": false },
-        { "code": 3, "slug": "io",           "type": "https://disky.dev/errors/io",           "retryable": true  },
-        { "code": 4, "slug": "not-found",    "type": "https://disky.dev/errors/not-found",    "retryable": false },
-        { "code": 5, "slug": "partial-scan", "type": "https://disky.dev/errors/partial-scan", "retryable": false },
-        { "code": 6, "slug": "lock-held",    "type": "https://disky.dev/errors/lock-held",    "retryable": true  }
+        { "code": 0, "slug": "ok",           "type": "https://disker.dev/errors/ok",           "retryable": false },
+        { "code": 1, "slug": "generic",      "type": "https://disker.dev/errors/generic",      "retryable": false },
+        { "code": 2, "slug": "usage",        "type": "https://disker.dev/errors/usage",        "retryable": false },
+        { "code": 3, "slug": "io",           "type": "https://disker.dev/errors/io",           "retryable": true  },
+        { "code": 4, "slug": "not-found",    "type": "https://disker.dev/errors/not-found",    "retryable": false },
+        { "code": 5, "slug": "partial-scan", "type": "https://disker.dev/errors/partial-scan", "retryable": false },
+        { "code": 6, "slug": "lock-held",    "type": "https://disker.dev/errors/lock-held",    "retryable": true  }
     ])
 }

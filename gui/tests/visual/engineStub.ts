@@ -165,7 +165,7 @@ export function snapshotSettingsPrefs() {
 
 /**
  * Answer the Settings screen's commands from an in-page preferences store
- * (`window.__prefsStore`), as `disky prefs` would: `get_prefs` reads it and
+ * (`window.__prefsStore`), as `disker prefs` would: `get_prefs` reads it and
  * `set_prefs` writes one key. Each `set_prefs` call is recorded in
  * `window.__prefsSets`.
  */
@@ -225,7 +225,7 @@ export function snapshotHistoryRows(now = Date.now()) {
 
 /**
  * Answer the History screen's commands from an in-page log
- * (`window.__historyRows`), as `disky history` / `disky restore` would:
+ * (`window.__historyRows`), as `disker history` / `disker restore` would:
  * `list_history` reads it and `restore` marks the entry restored. Each
  * restore id is recorded in `window.__restored`.
  */
@@ -258,7 +258,7 @@ export async function stubHistory(page: Page, rows: unknown[] = snapshotHistoryR
 
 const GB = 1e9;
 
-/** The snapshot's MAP (root and its two folders), as `disky map` answers per folder. */
+/** The snapshot's MAP (root and its two folders), as `disker map` answers per folder. */
 export function snapshotMapFolders() {
   const kids = (parent: string, list: [string, number, boolean?][]) =>
     list.map(([name, gb, has]) => ({ name, path: `${parent === "/" ? "" : parent}/${name}`, bytes: gb * GB, has_children: !!has }));
@@ -360,7 +360,7 @@ export async function stubMap(page: Page, noSnapshot = false, root?: unknown) {
 }
 
 /**
- * The snapshot's LARGE rows as `disky large` lists them, largest first:
+ * The snapshot's LARGE rows as `disker large` lists them, largest first:
  * name, location, GB, days since last opened (chosen so the relative time
  * reads like the snapshot's label), unused for over a year.
  */
@@ -426,7 +426,7 @@ export async function stubLarge(page: Page, noSnapshot = false) {
   );
 }
 
-/** The snapshot's DUPES as `disky dupes` reports them: name, bytes per copy, copy folders. */
+/** The snapshot's DUPES as `disker dupes` reports them: name, bytes per copy, copy folders. */
 const SNAPSHOT_DUPES: [string, number, string[]][] = [
   ["IMG_2041.HEIC", 6e6, ["~/Pictures/Photos Library", "~/Desktop/to sort", "~/Downloads"]],
   ["Brand guidelines v3.pdf", 184e6, ["~/Documents/Work", "~/Downloads", "~/Desktop"]],

@@ -1,6 +1,6 @@
 /**
  * Space map copy (REQ-DSCR-012), from the snapshot's Space map markup. Sizes
- * and the share of disk come from engine bytes (`disky map`); this module
+ * and the share of disk come from engine bytes (`disker map`); this module
  * only words and formats them.
  */
 import type { MapView } from "../../lib/contract";

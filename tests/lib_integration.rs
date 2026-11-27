@@ -1,11 +1,11 @@
 //! In-process integration tests — drive the lib API against a real DuckDB
-//! snapshot built from a synthetic temp tree. No `disky` binary required.
+//! snapshot built from a synthetic temp tree. No `disker` binary required.
 //!
 //! Shared fixture: one `OnceLock<Fixture>` is built per test file, scanned
 //! once, then read by every test. Cost: ~100 ms for the scan vs ~500 ms per
 //! shell-out in `tests/agentic.rs`.
 
-use disky::{cleanup, db, query, snapshots};
+use disker::{cleanup, db, query, snapshots};
 use std::fs;
 use std::path::PathBuf;
 use std::sync::OnceLock;
@@ -30,7 +30,7 @@ fn fixture() -> &'static Fixture {
         fs::write(root.join("sub/inner/nested.png"), vec![0u8; 8192]).unwrap();
 
         let db_path = dir.path().join("snap.db");
-        let outcome = disky::scan::run(root.to_str().unwrap(), db_path.to_str().unwrap())
+        let outcome = disker::scan::run(root.to_str().unwrap(), db_path.to_str().unwrap())
             .expect("scan succeeds");
         assert!(outcome.complete);
         Fixture { _dir: dir, db_path }
@@ -107,7 +107,7 @@ fn growth_detects_added_grew_and_removed_dirs() {
     fs::write(root.join("going-away/doomed.bin"), vec![0u8; 4096]).unwrap();
 
     let snap_a = dir.path().join("a.db");
-    disky::scan::run(root.to_str().unwrap(), snap_a.to_str().unwrap()).unwrap();
+    disker::scan::run(root.to_str().unwrap(), snap_a.to_str().unwrap()).unwrap();
 
     // Mutate: grow `growing`, remove `going-away`, add `new-dir`.
     sleep(Duration::from_millis(50)); // ensure mtime delta
@@ -117,12 +117,12 @@ fn growth_detects_added_grew_and_removed_dirs() {
     fs::write(root.join("new-dir/hello.txt"), vec![0u8; 2048]).unwrap();
 
     let snap_b = dir.path().join("b.db");
-    disky::scan::run(root.to_str().unwrap(), snap_b.to_str().unwrap()).unwrap();
+    disker::scan::run(root.to_str().unwrap(), snap_b.to_str().unwrap()).unwrap();
 
     let rows =
-        disky::query::growth(snap_a.to_str().unwrap(), snap_b.to_str().unwrap(), 100).unwrap();
+        disker::query::growth(snap_a.to_str().unwrap(), snap_b.to_str().unwrap(), 100).unwrap();
 
-    let by_path: std::collections::HashMap<String, &disky::query::GrowthRow> =
+    let by_path: std::collections::HashMap<String, &disker::query::GrowthRow> =
         rows.iter().map(|r| (r.path.clone(), r)).collect();
 
     let growing = by_path
@@ -171,16 +171,16 @@ fn churn_detects_recently_modified_files() {
     f.set_times(times).unwrap();
 
     let snap = dir.path().join("snap.db");
-    disky::scan::run(root.to_str().unwrap(), snap.to_str().unwrap()).unwrap();
+    disker::scan::run(root.to_str().unwrap(), snap.to_str().unwrap()).unwrap();
 
-    let conn = disky::db::open(snap.to_str().unwrap()).unwrap();
+    let conn = disker::db::open(snap.to_str().unwrap()).unwrap();
     let now = SystemTime::now()
         .duration_since(std::time::UNIX_EPOCH)
         .unwrap()
         .as_secs() as i64;
     // Cutoff: 1 day ago. `hot/*` should appear, `cold/*` should not.
     let cutoff = now - 86400;
-    let rows = disky::query::churn(&conn, cutoff, 100).unwrap();
+    let rows = disker::query::churn(&conn, cutoff, 100).unwrap();
 
     let hot = rows
         .iter()
@@ -249,7 +249,7 @@ fn finish_snapshot(conn: duckdb::Connection, root: &str) {
 }
 
 /// Synthesize a snapshot DB directly via DuckDB appenders (skips the
-/// filesystem-walk path of `disky::scan::run`) so we can stress cleanup
+/// filesystem-walk path of `disker::scan::run`) so we can stress cleanup
 /// against ~1 M rows without writing 1 M actual files. The shape matches
 /// what scan would produce: each "project" gets a `node_modules` (or
 /// `target`) dir plus N file rows whose paths sit underneath it. On top,
@@ -628,14 +628,14 @@ fn growth_over_n_fits_linear_growth_with_high_r2() {
         // Overwrite the growing file with the new size.
         fs::write(root.join("growing/blob.bin"), vec![0u8; *sz]).unwrap();
         let db_path = dir.path().join(format!("snap_{i}.db"));
-        disky::scan::run(root.to_str().unwrap(), db_path.to_str().unwrap()).unwrap();
+        disker::scan::run(root.to_str().unwrap(), db_path.to_str().unwrap()).unwrap();
         snaps.push((
             db_path.to_string_lossy().into_owned(),
             base_ts + (i as i64) * 86400,
         ));
     }
 
-    let rows = disky::query::growth_over_n(&snaps, 50, Some(1024 * 1024)).unwrap();
+    let rows = disker::query::growth_over_n(&snaps, 50, Some(1024 * 1024)).unwrap();
     let growing = rows
         .iter()
         .find(|r| r.path.ends_with("/growing"))
@@ -684,9 +684,9 @@ fn contract_totals_match_cleanup_summary() {
     ];
     let (_d, conn) = small_snapshot(rows, "/h");
     let ctx = synth_ctx("/h", "/h");
-    let hits = disky::contract::view_hits_with(&conn, &ctx).unwrap();
+    let hits = disker::contract::view_hits_with(&conn, &ctx).unwrap();
     let summary = cleanup::summarise(&hits);
-    let cats = disky::contract::categories_from_hits(&hits);
+    let cats = disker::contract::categories_from_hits(&hits);
 
     assert_eq!(cats.len(), summary.len());
     for c in &cats {
@@ -702,7 +702,7 @@ fn contract_totals_match_cleanup_summary() {
 
 #[test]
 fn contract_never_lists_ignored_or_excluded_paths() {
-    // REQ-DCLEAN-029.A3 — `.diskyignore` segments and excluded folders
+    // REQ-DCLEAN-029.A3 — `.diskerignore` segments and excluded folders
     // never reach the GUI's category list.
     let rows: &[(&str, bool, i64, i64)] = &[
         ("/h/src/a/node_modules", true, 0, T0),
@@ -721,8 +721,8 @@ fn contract_never_lists_ignored_or_excluded_paths() {
         "/h/src/private".to_string(),
         "/h/Library/Caches".to_string(),
     ];
-    let hits = disky::contract::view_hits_with(&conn, &ctx).unwrap();
-    let paths: Vec<String> = disky::contract::categories_from_hits(&hits)
+    let hits = disker::contract::view_hits_with(&conn, &ctx).unwrap();
+    let paths: Vec<String> = disker::contract::categories_from_hits(&hits)
         .into_iter()
         .flat_map(|c| c.items.into_iter().map(|i| i.path))
         .collect();
@@ -741,7 +741,7 @@ fn contract_load_builds_view_from_snapshot() {
     drop(conn);
     let path = dir.path().join("small.db");
     let (view, hits) =
-        disky::contract::load(path.to_str().unwrap(), &disky::prefs::Prefs::default()).unwrap();
+        disker::contract::load(path.to_str().unwrap(), &disker::prefs::Prefs::default()).unwrap();
     assert_eq!(view.goal_bytes, 80_000_000_000);
     assert!(view.disk.capacity_bytes > 0 && view.disk.free_bytes <= view.disk.capacity_bytes);
     assert!(view.is_stale, "a 2023 snapshot is older than 24 h");
@@ -777,7 +777,7 @@ fn scan_counts_permission_skipped_paths() {
     fs::set_permissions(&locked, fs::Permissions::from_mode(0o000)).unwrap();
 
     let db_path = dir.path().join("snap.db");
-    let outcome = disky::scan::run(root.to_str().unwrap(), db_path.to_str().unwrap());
+    let outcome = disker::scan::run(root.to_str().unwrap(), db_path.to_str().unwrap());
     fs::set_permissions(&locked, fs::Permissions::from_mode(0o755)).unwrap();
     let outcome = outcome.expect("scan completes despite the unreadable dir");
     assert!(outcome.complete);
@@ -788,7 +788,8 @@ fn scan_counts_permission_skipped_paths() {
     let s = query::stats(&conn).unwrap();
     assert!(s.files >= 1, "readable paths are still recorded");
     let (view, _) =
-        disky::contract::load(db_path.to_str().unwrap(), &disky::prefs::Prefs::default()).unwrap();
+        disker::contract::load(db_path.to_str().unwrap(), &disker::prefs::Prefs::default())
+            .unwrap();
     assert_eq!(view.skipped_paths, outcome.skipped);
 }
 
@@ -811,7 +812,7 @@ fn cleanup_drops_excluded_and_recently_used_hits() {
         ("/h/src/privateer/target/x", false, 40, old),
     ];
     let (_d, conn) = small_snapshot(rows, "/h");
-    let paths = |prefs: &disky::prefs::Prefs| {
+    let paths = |prefs: &disker::prefs::Prefs| {
         let ctx = synth_ctx("/h", "/h").with_prefs(prefs);
         let mut p: Vec<String> = cleanup::scan_with(&conn, &all_targets(), 100, &ctx)
             .unwrap()
@@ -821,7 +822,7 @@ fn cleanup_drops_excluded_and_recently_used_hits() {
         p.sort();
         p
     };
-    let mut prefs = disky::prefs::Prefs {
+    let mut prefs = disker::prefs::Prefs {
         excluded: vec!["~/src/private".into(), "/h/does/not/exist".into()],
         ..Default::default()
     };
@@ -857,19 +858,19 @@ fn contract_load_honours_the_preferences_store() {
     let (dir, conn) = small_snapshot(rows, "/h");
     drop(conn);
     let path = dir.path().join("small.db");
-    let prefs = disky::prefs::Prefs {
+    let prefs = disker::prefs::Prefs {
         excluded: vec!["/h/src/b".into()],
         goal_bytes: 50_000_000_000,
         ..Default::default()
     };
-    let (view, hits) = disky::contract::load(path.to_str().unwrap(), &prefs).unwrap();
+    let (view, hits) = disker::contract::load(path.to_str().unwrap(), &prefs).unwrap();
     assert_eq!(view.goal_bytes, 50_000_000_000);
     assert_eq!(view.preferences, prefs);
     let got: Vec<&str> = hits.iter().map(|h| h.path.as_str()).collect();
     assert_eq!(got, ["/h/src/a/node_modules"]);
 }
 
-/// REQ-DSCR-003.A4: one `disky map` call on a ~1 M-row snapshot is a single
+/// REQ-DSCR-003.A4: one `disker map` call on a ~1 M-row snapshot is a single
 /// grouped query — under 1 s in a release build (generous bound in debug).
 #[test]
 fn map_is_fast_on_large_snapshot() {
@@ -877,7 +878,7 @@ fn map_is_fast_on_large_snapshot() {
     let conn = db::open(db_path.to_str().unwrap()).unwrap();
 
     let start = std::time::Instant::now();
-    let root = disky::map::map(&conn, None, &[], 1).unwrap();
+    let root = disker::map::map(&conn, None, &[], 1).unwrap();
     let elapsed_root = start.elapsed();
     // 2 000 projects + the synthetic home, largest first.
     assert_eq!(root.records.len(), 2_001);
@@ -895,7 +896,7 @@ fn map_is_fast_on_large_snapshot() {
 
     let start = std::time::Instant::now();
     let caches =
-        disky::map::map(&conn, Some(&format!("{SYNTH_HOME}/Library/Caches")), &[], 1).unwrap();
+        disker::map::map(&conn, Some(&format!("{SYNTH_HOME}/Library/Caches")), &[], 1).unwrap();
     let elapsed_child = start.elapsed();
     assert_eq!(caches.records.len(), SYNTH_LOCATION_DIRS);
 
@@ -929,16 +930,16 @@ fn map_view_honours_excluded_folders() {
     );
     let path = dir.path().join("small.db").to_string_lossy().into_owned();
     drop(conn);
-    let prefs = disky::prefs::Prefs {
+    let prefs = disker::prefs::Prefs {
         excluded: vec!["/m/private".into()],
         ..Default::default()
     };
-    let v = disky::contract::map_view(&path, None, &prefs).unwrap();
+    let v = disker::contract::map_view(&path, None, &prefs).unwrap();
     let names: Vec<&str> = v.records.iter().map(|c| c.name.as_str()).collect();
     assert_eq!(names, ["keep"]);
     assert_eq!(v.total_bytes, 300);
     assert!(v.capacity_bytes > 0);
-    let all = disky::contract::map_view(&path, None, &disky::prefs::Prefs::default()).unwrap();
+    let all = disker::contract::map_view(&path, None, &disker::prefs::Prefs::default()).unwrap();
     assert_eq!(all.records[0].name, "private");
 }
 
@@ -959,7 +960,7 @@ fn scan_records_each_files_access_time() {
         .set_times(std::fs::FileTimes::new().set_accessed(accessed))
         .unwrap();
     let db_path = dir.path().join("snap.db");
-    disky::scan::run(root.to_str().unwrap(), db_path.to_str().unwrap()).unwrap();
+    disker::scan::run(root.to_str().unwrap(), db_path.to_str().unwrap()).unwrap();
     let conn = db::open(db_path.to_str().unwrap()).unwrap();
     let atime: Option<i64> = conn
         .query_row("SELECT atime FROM files WHERE name = 'old.img'", [], |r| {
@@ -967,7 +968,7 @@ fn scan_records_each_files_access_time() {
         })
         .unwrap();
     assert_eq!(atime, Some(1_500_000_000));
-    assert!(disky::large::has_atime(&conn).unwrap());
+    assert!(disker::large::has_atime(&conn).unwrap());
 }
 
 /// Nested dev folders (bug: thousands of `node_modules` inside other

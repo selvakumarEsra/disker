@@ -14,7 +14,7 @@
 //! Pure heuristic — no ML, no stats crate. Uses ordinary least-squares
 //! linear regression for the declining branch.
 //!
-//! Wired into the CLI as `disky churn --classify` (opt-in). See
+//! Wired into the CLI as `disker churn --classify` (opt-in). See
 //! `AGENTS.md#pattern-classifier`. When churn lands as a first-class
 //! command, each record gains a `pattern` field; until then the module
 //! stands alone and is unit-tested in isolation.

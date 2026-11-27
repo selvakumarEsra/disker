@@ -5,8 +5,8 @@ import { OS, skippedHint } from "../../lib/os";
  */
 import { LOCK_HELD, type EngineError } from "../../lib/contract";
 
-/** A1: the snapshot is locked by another disky process. */
-export const LOCK_HELD_MESSAGE = "Another disky process is using the snapshot. Try again in a moment.";
+/** A1: the snapshot is locked by another disker process. */
+export const LOCK_HELD_MESSAGE = "Another disker process is using the snapshot. Try again in a moment.";
 
 /**
  * The scan error line: the lock-held copy (A1), else the engine's detail.

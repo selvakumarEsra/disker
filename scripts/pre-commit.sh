@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# disky pre-commit hook — fmt + clippy gate on staged Rust changes.
+# disker pre-commit hook — fmt + clippy gate on staged Rust changes.
 # Install via: bash scripts/install-hooks.sh
 set -euo pipefail
 

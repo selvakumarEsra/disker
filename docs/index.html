@@ -2,10 +2,10 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<title>disky — Fast disk analyzer and cleanup for macOS, Linux and Windows</title>
+<title>disker — Fast disk analyzer and cleanup for macOS, Linux and Windows</title>
 <meta name="description" content="Fast disk analyzer and cleanup CLI for macOS, Linux and Windows, in Rust, with a desktop app. Snapshot diff, Trash-restorable cleanup, agent-native JSON. Alternative to ncdu, dust, du, GrandPerspective, DaisyDisk.">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<meta property="og:title" content="disky — Fast disk analyzer and cleanup for macOS, Linux and Windows">
+<meta property="og:title" content="disker — Fast disk analyzer and cleanup for macOS, Linux and Windows">
 <meta property="og:description" content="Fast disk analyzer and cleanup CLI in Rust for macOS, Linux and Windows. ncdu / dust / GrandPerspective alternative.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://selvakumaresra.github.io/disker/">
@@ -65,7 +65,7 @@
 <body>
 <div class="wrap">
 
-<h1>disky</h1>
+<h1>disker</h1>
 <p class="tagline">Fast disk analyzer and cleanup for macOS, Linux and Windows, in Rust.</p>
 
 <p>
@@ -90,18 +90,18 @@
 </p>
 
 <h2 data-num="02">Quick start</h2>
-<pre><code>disky scan /                   # scan from root (~3 min, 2M files)
-disky                          # ncdu-style TUI
-disky top --physical           # largest files (APFS-aware)
-disky cleanup --apply --reversible    # safe cleanup → Trash / Recycle Bin
-disky history                  # every applied clean
-disky restore &lt;id&gt;             # put it back
-disky dupes                    # byte-identical files
-disky large                    # files of 2 GB and over</code></pre>
+<pre><code>disker scan /                   # scan from root (~3 min, 2M files)
+disker                          # ncdu-style TUI
+disker top --physical           # largest files (APFS-aware)
+disker cleanup --apply --reversible    # safe cleanup → Trash / Recycle Bin
+disker history                  # every applied clean
+disker restore &lt;id&gt;             # put it back
+disker dupes                    # byte-identical files
+disker large                    # files of 2 GB and over</code></pre>
 
-<h2 data-num="03">Why disky</h2>
+<h2 data-num="03">Why disker</h2>
 <table>
-  <thead><tr><th></th><th>disky</th><th>ncdu</th><th>dust</th><th>du</th></tr></thead>
+  <thead><tr><th></th><th>disker</th><th>ncdu</th><th>dust</th><th>du</th></tr></thead>
   <tbody>
     <tr><td>Snapshot storage</td><td>DuckDB</td><td>—</td><td>—</td><td>—</td></tr>
     <tr><td>Diff between scans</td><td>yes</td><td>—</td><td>—</td><td>—</td></tr>
@@ -115,7 +115,7 @@ disky large                    # files of 2 GB and over</code></pre>
 <h2 data-num="04">Agent-native</h2>
 <p>
   Every command emits an envelope <code>{schema_version, kind, records}</code>. Errors on
-  stderr follow RFC&nbsp;9457. Exit codes are stable. Run <code>disky schema</code> for
+  stderr follow RFC&nbsp;9457. Exit codes are stable. Run <code>disker schema</code> for
   the machine descriptor.
 </p>
 
@@ -123,9 +123,9 @@ disky large                    # files of 2 GB and over</code></pre>
 <table>
   <thead><tr><th></th><th>Trash</th><th>Data directory</th></tr></thead>
   <tbody>
-    <tr><td>macOS</td><td><code>~/.Trash</code></td><td><code>~/Library/Application Support/disky</code></td></tr>
-    <tr><td>Linux</td><td>freedesktop Trash</td><td><code>~/.local/share/disky</code></td></tr>
-    <tr><td>Windows</td><td>Recycle Bin</td><td><code>%LOCALAPPDATA%\disky</code></td></tr>
+    <tr><td>macOS</td><td><code>~/.Trash</code></td><td><code>~/Library/Application Support/disker</code></td></tr>
+    <tr><td>Linux</td><td>freedesktop Trash</td><td><code>~/.local/share/disker</code></td></tr>
+    <tr><td>Windows</td><td>Recycle Bin</td><td><code>%LOCALAPPDATA%\disker</code></td></tr>
   </tbody>
 </table>
 <p>

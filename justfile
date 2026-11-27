@@ -1,4 +1,4 @@
-# disky dev recipes — invoke via `just <recipe>`.
+# disker dev recipes — invoke via `just <recipe>`.
 # Fast loop: `just test` runs unit + lib_integration only (<10s target).
 
 default: ci
@@ -34,7 +34,7 @@ bench-cmp:
     bash scripts/bench-competitors.sh
 
 mcp:
-    cargo run --bin disky-mcp
+    cargo run --bin disker-mcp
 
 install-fast:
     cargo install --path . --debug --bins

@@ -7,7 +7,7 @@
 //! `/opt/homebrew/bin` and `/usr/local/bin` (A1). It only checks the file's
 //! executable bit: it never runs the CLI (A2).
 //!
-//! `disky agents --format json` prints the same records the GUI shows.
+//! `disker agents --format json` prints the same records the GUI shows.
 //!
 //! @implements REQ-DSCR-007
 

@@ -9,7 +9,7 @@ version: 1
 <!-- id: XPLAT-DOC -->
 # Windows and Linux support
 
-disky was built for macOS. This document makes the engine, the CLI, and the desktop GUI run on Linux and Windows with the same commands, JSON envelopes, and safety rules. The CLI stays canonical (AGENTS.md), and every rule in `disk-cleanup.md` and `disk-screens.md` keeps applying on each OS. Only the places those specs call macOS-specific (folder locations, the Trash, Finder, `df`) change.
+disker was built for macOS. This document makes the engine, the CLI, and the desktop GUI run on Linux and Windows with the same commands, JSON envelopes, and safety rules. The CLI stays canonical (AGENTS.md), and every rule in `disk-cleanup.md` and `disk-screens.md` keeps applying on each OS. Only the places those specs call macOS-specific (folder locations, the Trash, Finder, `df`) change.
 
 In scope: path handling, default folders, disk space, locking, cleanup locations, Trash and restore, open and reveal, agent detection, GUI bundles, and CI and release builds.
 
@@ -35,7 +35,7 @@ verifies:
 <!-- id: REQ-XPLAT-001.A1 -->
 - A Windows path `C:\Users\me\a b\x.txt` is recorded as `C:/Users/me/a b/x.txt`, and its `name` is `x.txt`.
 <!-- id: REQ-XPLAT-001.A2 -->
-- `disky map C:\Users\me` and `disky map C:/Users/me` return the same envelope.
+- `disker map C:\Users\me` and `disker map C:/Users/me` return the same envelope.
 <!-- id: REQ-XPLAT-001.A3 -->
 - A drive root `C:/` lists its immediate children (`C:/Users`, `C:/Windows`, …), the same way `/` does on Unix.
 <!-- id: REQ-XPLAT-001.A4 -->
@@ -56,11 +56,11 @@ verifies:
 
 ## Acceptance
 <!-- id: REQ-XPLAT-002.A1 -->
-- With no path, `disky scan` scans `/` on macOS and Linux, and the system drive root (`%SystemDrive%/`, else `C:/`) on Windows.
+- With no path, `disker scan` scans `/` on macOS and Linux, and the system drive root (`%SystemDrive%/`, else `C:/`) on Windows.
 <!-- id: REQ-XPLAT-002.A2 -->
 - Home is `$HOME` on macOS and Linux and `%USERPROFILE%` on Windows, read from the environment first, so tests can point it at a temp folder.
 <!-- id: REQ-XPLAT-002.A3 -->
-- Snapshots, `history.json` and `prefs.json` live in `~/Library/Application Support/disky` (macOS), `$XDG_DATA_HOME/disky` or else `~/.local/share/disky` (Linux), and `%LOCALAPPDATA%\disky` (Windows). On Windows the environment variable wins.
+- Snapshots, `history.json` and `prefs.json` live in `~/Library/Application Support/disker` (macOS), `$XDG_DATA_HOME/disker` or else `~/.local/share/disker` (Linux), and `%LOCALAPPDATA%\disker` (Windows). On Windows the environment variable wins.
 
 <!-- id: REQ-XPLAT-003 -->
 ## Disk capacity and free space MUST come from the OS on every platform
@@ -131,7 +131,7 @@ verifies:
 
 ## Acceptance
 <!-- id: REQ-XPLAT-005.A1 -->
-- `disky schema` and the GUI list the same category names on all three OSes.
+- `disker schema` and the GUI list the same category names on all three OSes.
 <!-- id: REQ-XPLAT-005.A2 -->
 - On Linux, `/tmp/.X11-unix`, `/tmp/.ICE-unix`, `/tmp/systemd-private-*`, `ssh-*` and `tmux-*` are never offered.
 <!-- id: REQ-XPLAT-005.A3 -->
@@ -177,7 +177,7 @@ verifies:
 <!-- id: REQ-XPLAT-006.A3 -->
 - On Windows, the `$I` record is little-endian: version 2, the size, the deletion time as a FILETIME, the path length in UTF-16 units including the NUL, then the path with `\` separators.
 <!-- id: REQ-XPLAT-006.A4 -->
-- `disky restore <id>` puts the item back and leaves no `.trashinfo` or `$I` record behind. Conflicts and missing items behave as REQ-DCLEAN-034 says.
+- `disker restore <id>` puts the item back and leaves no `.trashinfo` or `$I` record behind. Conflicts and missing items behave as REQ-DCLEAN-034 says.
 <!-- id: REQ-XPLAT-006.A5 -->
 - A path on another volume than the Trash fails as "move to Trash failed" and stays where it is. Nothing is copied and then deleted.
 <!-- id: REQ-XPLAT-006.A6 -->
@@ -206,7 +206,7 @@ verifies:
 <!-- id: REQ-XPLAT-008 -->
 ## Open and reveal MUST use each OS's file manager
 
-`disky render` opening the report, the TUI's open key, and the GUI's Reveal in Finder use `open` / `open -R` on macOS, `explorer <path>` / `explorer /select,<path>` on Windows, and `xdg-open` on Linux. Reveal on Linux asks the file manager to select the item over D-Bus (`org.freedesktop.FileManager1.ShowItems`), and opens the parent folder when that fails. The GUI labels the action "Reveal in Finder" on macOS, "Show in Explorer" on Windows, and "Show in folder" on Linux.
+`disker render` opening the report, the TUI's open key, and the GUI's Reveal in Finder use `open` / `open -R` on macOS, `explorer <path>` / `explorer /select,<path>` on Windows, and `xdg-open` on Linux. Reveal on Linux asks the file manager to select the item over D-Bus (`org.freedesktop.FileManager1.ShowItems`), and opens the parent folder when that fails. The GUI labels the action "Reveal in Finder" on macOS, "Show in Explorer" on Windows, and "Show in folder" on Linux.
 
 implementations:
   - src/platform.rs:open_path
@@ -229,7 +229,7 @@ verifies:
 <!-- id: REQ-XPLAT-009 -->
 ## Agent detection MUST find Windows launchers
 
-On Windows, `disky agents` looks for `<bin>.exe`, `<bin>.cmd` and `<bin>.bat` in `PATH`, then `%APPDATA%/npm` and `~/.local/bin`. On Unix the rules of REQ-DSCR-007 apply unchanged.
+On Windows, `disker agents` looks for `<bin>.exe`, `<bin>.cmd` and `<bin>.bat` in `PATH`, then `%APPDATA%/npm` and `~/.local/bin`. On Unix the rules of REQ-DSCR-007 apply unchanged.
 
 implementations:
   - src/agents.rs:search_dirs

@@ -65,8 +65,8 @@ T_BUILD_DEBUG=$(elapsed_s "$T")
 
 T_BUILD_RELEASE_COLD="null"
 T_BUILD_RELEASE_INC="null"
-SIZE_DISKY="null"
-SIZE_DISKY_MCP="null"
+SIZE_DISKER="null"
+SIZE_DISKER_MCP="null"
 if [ "$COLD" = "1" ]; then
     echo "→ cargo clean + release (cold)…" >&2
     cargo clean >/dev/null 2>&1
@@ -74,11 +74,11 @@ if [ "$COLD" = "1" ]; then
     T_BUILD_RELEASE_COLD=$(elapsed_s "$T")
 fi
 
-if [ -f "target/release/disky" ]; then
+if [ -f "target/release/disker" ]; then
     echo "→ cargo build --release (incremental)…" >&2
     T=$(now_ms); cargo build --release --bins >/dev/null 2>&1
     T_BUILD_RELEASE_INC=$(elapsed_s "$T")
-    SIZE_DISKY=$(stat -f%z target/release/disky 2>/dev/null || stat -c%s target/release/disky 2>/dev/null || echo null)
+    SIZE_DISKER=$(stat -f%z target/release/disker 2>/dev/null || stat -c%s target/release/disker 2>/dev/null || echo null)
 fi
 
 # ── LOC ──────────────────────────────────────────────────────────────────
@@ -131,7 +131,7 @@ entry = {
         "build_release_inc": n("$T_BUILD_RELEASE_INC"),
         "build_release_cold": n("$T_BUILD_RELEASE_COLD")
     },
-    "binary_size_bytes": {"disky": n("$SIZE_DISKY")},
+    "binary_size_bytes": {"disker": n("$SIZE_DISKER")},
     "tests": {"fast_tier_total": n("$TEST_COUNT")},
     "loc": {"src": $LOC_SRC, "tests": $LOC_TESTS, "benches": $LOC_BENCHES},
     "cold": $COLD_PY

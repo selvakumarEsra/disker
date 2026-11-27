@@ -9,7 +9,7 @@ export function TitleBar() {
     <header class="titlebar" data-tauri-drag-region data-testid="titlebar">
       <span class="titlebar-lights" data-tauri-drag-region data-testid="traffic-lights" aria-hidden="true" />
       <div class="titlebar-title" data-tauri-drag-region>
-        disky
+        disker
       </div>
     </header>
   );

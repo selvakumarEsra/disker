@@ -1,6 +1,6 @@
 use super::tree::{load_children, DirEntry};
 use anyhow::Result;
-use disky::db::ScanMeta;
+use disker::db::ScanMeta;
 use duckdb::Connection;
 
 pub struct App {
@@ -96,7 +96,7 @@ impl App {
 
     pub fn open_finder(&mut self) -> Result<()> {
         if let Some(path) = self.selected_path() {
-            disky::platform::open_path(&path)?;
+            disker::platform::open_path(&path)?;
             self.status = format!("Opened: {}", path);
         }
         Ok(())

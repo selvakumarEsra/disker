@@ -1,4 +1,4 @@
-# Contributing to disky
+# Contributing to disker
 
 ## Inner loop
 
@@ -42,16 +42,16 @@ bacon            # uses bacon.toml — clippy → nextest on every save
 
 ## Performance & metrics rule
 
-**Every report on disky's status carries:**
+**Every report on disker's status carries:**
 
 1. Git metadata — HEAD hash, branch, ahead/behind, author, dirty flag.
 2. Toolchain — `rustc` + `cargo` versions.
 3. Machine — OS, CPU model, cores, mem.
 4. Build timings — `cargo check`, `nextest`, debug+release builds.
-5. Binary size — `target/release/disky` (single bin since v0.10.0; `disky-mcp` was removed).
+5. Binary size — `target/release/disker` (single bin since v0.10.0; `disker-mcp` was removed).
 6. Test count by tier (fast / CLI).
 7. LOC by directory (src / tests / benches).
-8. Competitor benchmark — disky vs `dust` / `dua` / `gdu` / `du` (refreshed monthly or on release tag).
+8. Competitor benchmark — disker vs `dust` / `dua` / `gdu` / `du` (refreshed monthly or on release tag).
 9. Trend vs prior version (Δ vs the last entry whose `commit` differs).
 
 Source of truth: `metrics/build-timings.jsonl` (append-only) + `metrics/baseline.json` (locked) + `metrics/competitors-latest.json` (overwritten).

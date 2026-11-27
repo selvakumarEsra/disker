@@ -21,8 +21,8 @@ import "./history/history.css";
 
 /**
  * The History screen (REQ-DSCR-015): every recorded clean, newest first,
- * from the engine's `list_history` (the rows `disky history` prints). The
- * engine decides each row's detail and state; Restore runs `disky restore`
+ * from the engine's `list_history` (the rows `disker history` prints). The
+ * engine decides each row's detail and state; Restore runs `disker restore`
  * through the backend, which also refreshes the meter, then the log is
  * reloaded. A partial restore (items no longer in the Trash) is reported
  * per item and its row keeps "Restore", as the engine retries the rest.

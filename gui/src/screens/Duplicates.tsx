@@ -31,7 +31,7 @@ interface Shown {
 
 /**
  * The Duplicates screen (REQ-DSCR-014): byte-identical files from the
- * engine's `load_dupes` (`disky dupes`), one card per group. Each card's
+ * engine's `load_dupes` (`disker dupes`), one card per group. Each card's
  * copy rows are a radio group — click, Space or the arrow keys choose the
  * kept copy (the first by default); the rest are marked "Remove". "Remove
  * <n> extra copies" sends every non-kept copy to `trash_dupes`

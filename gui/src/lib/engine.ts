@@ -1,9 +1,9 @@
 /**
- * The GUI's only door to the disky engine (REQ-DCLEAN-001). Each function
+ * The GUI's only door to the disker engine (REQ-DCLEAN-001). Each function
  * delegates to one Tauri command in `src-tauri/src/main.rs`, which delegates
- * to the `disky` library crate. Every payload is parsed against the contract
+ * to the `disker` library crate. Every payload is parsed against the contract
  * (REQ-DCLEAN-027) before a component sees it, and every failure is an
- * {@link EngineError} typed by disky's exit-code slug (REQ-DCLEAN-018).
+ * {@link EngineError} typed by disker's exit-code slug (REQ-DCLEAN-018).
  */
 import { invoke } from "@tauri-apps/api/core";
 import { listen, type UnlistenFn } from "@tauri-apps/api/event";
@@ -53,12 +53,12 @@ async function call(cmd: string, args?: Record<string, unknown>): Promise<unknow
   }
 }
 
-/** The latest snapshot's cleanup view. CLI: `disky cleanup --format json`. */
+/** The latest snapshot's cleanup view. CLI: `disker cleanup --format json`. */
 export async function loadCleanupView(snapshot?: string): Promise<CleanupView> {
   return parseCleanupView(await invoke("load_cleanup_view", { snapshot: snapshot ?? null }));
 }
 
-/** Scan `root` into a new snapshot and return its view. CLI: `disky scan`. */
+/** Scan `root` into a new snapshot and return its view. CLI: `disker scan`. */
 export async function scan(root?: string): Promise<CleanupView> {
   return parseCleanupView(await call("scan", { root: root ?? null }));
 }
@@ -99,8 +99,8 @@ export function onCleanProgress(cb: (p: CleanProgress) => void, onError?: (e: un
 
 /**
  * Clean exactly the reviewed item paths, in the order given. CLI:
- * `disky cleanup --apply [--reversible]` (its envelope carries the same
- * post-clean `disk`); undo with `disky restore <id>`. `openedBy` names the
+ * `disker cleanup --apply [--reversible]` (its envelope carries the same
+ * post-clean `disk`); undo with `disker restore <id>`. `openedBy` names the
  * agent that opened the review, which titles the history entry
  * (REQ-DCLEAN-009.A5).
  */
@@ -111,7 +111,7 @@ export async function clean(itemPaths: string[], mode: CleanMode, openedBy: stri
   return result;
 }
 
-/** Undo a Trash clean (REQ-DCLEAN-009.A4). CLI: `disky restore <id>`. */
+/** Undo a Trash clean (REQ-DCLEAN-009.A4). CLI: `disker restore <id>`. */
 export async function restore(historyId: string): Promise<RestoreResult> {
   const result = parseRestoreResult(await call("restore", { historyId }));
   setDisk(result.disk);
@@ -123,14 +123,14 @@ export async function openFullDiskAccess(): Promise<void> {
   await call("open_full_disk_access");
 }
 
-/** Every preference, from the shared store (REQ-DSCR-001). CLI: `disky prefs --format json`. */
+/** Every preference, from the shared store (REQ-DSCR-001). CLI: `disker prefs --format json`. */
 export async function getPrefs(): Promise<Preferences> {
   return parsePreferences(await call("get_prefs"));
 }
 
 /**
  * Save one preference at once and return the store as saved
- * (REQ-DSCR-016). CLI: `disky prefs --set <key>=<value>`. `excluded` takes
+ * (REQ-DSCR-016). CLI: `disker prefs --set <key>=<value>`. `excluded` takes
  * a JSON array, so folder names may hold commas.
  */
 export async function setPrefs(key: string, value: string): Promise<Preferences> {
@@ -146,7 +146,7 @@ export async function pickFolder(): Promise<string | null> {
 
 /**
  * The History screen's rows, newest first, with the total cleared
- * (REQ-DSCR-015). CLI: `disky history --format json` (same rows).
+ * (REQ-DSCR-015). CLI: `disker history --format json` (same rows).
  */
 export async function listHistory(): Promise<HistoryView> {
   return parseHistoryView(await call("list_history"));
@@ -155,7 +155,7 @@ export async function listHistory(): Promise<HistoryView> {
 /**
  * A folder's immediate children by physical size (REQ-DSCR-003); `path`
  * null maps the scan root. Resolves null when there is no snapshot yet.
- * CLI: `disky map [<path>] --format json`.
+ * CLI: `disker map [<path>] --format json`.
  */
 export async function loadMap(path: string | null = null): Promise<MapView | null> {
   const raw = await call("load_map", { path });
@@ -174,7 +174,7 @@ export async function revealInFinder(path: string): Promise<void> {
  * Files of at least 2 GB for `filter`, largest first, with last-opened
  * times (REQ-DSCR-004). The backend remembers the listed paths: they are
  * the only ones `trashLarge` may move (REQ-DSCR-006.A2). Resolves null when
- * there is no snapshot yet. CLI: `disky large --filter <f> --format json`.
+ * there is no snapshot yet. CLI: `disker large --filter <f> --format json`.
  */
 export async function loadLarge(filter: LargeFilter): Promise<LargeView | null> {
   const raw = await call("load_large", { filter });
@@ -184,7 +184,7 @@ export async function loadLarge(filter: LargeFilter): Promise<LargeView | null> 
 /**
  * Move exactly `paths` (from the last `loadLarge`) to the Trash with one
  * "Large files" history entry (REQ-DSCR-006, REQ-DSCR-013.A4). Always the
- * Trash. The meter follows the post-move disk. CLI: `disky trash <path>...
+ * Trash. The meter follows the post-move disk. CLI: `disker trash <path>...
  * --title "Large files"`.
  */
 export async function trashLarge(paths: string[]): Promise<TrashResult> {
@@ -198,7 +198,7 @@ export async function trashLarge(paths: string[]): Promise<TrashResult> {
  * blocking thread in the backend. The backend remembers the groups: their
  * copies are the only paths `trashDupes` may move, and never every copy of
  * a group (REQ-DSCR-006.A2, A3). Resolves null when there is no snapshot
- * yet. CLI: `disky dupes --format json`.
+ * yet. CLI: `disker dupes --format json`.
  */
 export async function loadDupes(): Promise<DupesView | null> {
   const raw = await call("load_dupes");
@@ -208,7 +208,7 @@ export async function loadDupes(): Promise<DupesView | null> {
 /**
  * Move exactly `paths` — the copies not kept — to the Trash with one
  * "Duplicates" history entry (REQ-DSCR-006, REQ-DSCR-014.A4). The meter
- * follows the post-move disk. CLI: `disky trash <path>... --title Duplicates`.
+ * follows the post-move disk. CLI: `disker trash <path>... --title Duplicates`.
  */
 export async function trashDupes(paths: string[]): Promise<TrashResult> {
   const result = parseTrashResult(await call("trash_dupes", { paths }));
@@ -228,8 +228,8 @@ export const FOCUS_HOME_EVENT = "assistant://focus-home";
 /**
  * The Assistant screen's data: the selected agent and its display name, the
  * proactive checks, the goal and disk, the three agents and the engine's
- * suggestions (REQ-DSCR-007 … 010). CLI: `disky suggest`, `disky agents`,
- * `disky prefs`.
+ * suggestions (REQ-DSCR-007 … 010). CLI: `disker suggest`, `disker agents`,
+ * `disker prefs`.
  */
 export async function loadAssistant(): Promise<AssistantView> {
   return parseAssistantView(await call("load_assistant"));

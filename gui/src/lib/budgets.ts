@@ -19,4 +19,4 @@ export const SPINNER_THRESHOLD_MS = 200;
 export const RESULTS_ITEM_CAP = 200;
 
 /** The performance mark set when the idle phase first becomes interactive (A1). */
-export const IDLE_INTERACTIVE_MARK = "disky:idle-interactive";
+export const IDLE_INTERACTIVE_MARK = "disker:idle-interactive";

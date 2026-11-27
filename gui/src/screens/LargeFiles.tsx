@@ -31,7 +31,7 @@ import "./largeFiles/largeFiles.css";
 
 /**
  * The Large files screen (REQ-DSCR-013): files of at least 2 GB from the
- * engine's `load_large` (`disky large`), filtered All / Over 10 GB / Unused
+ * engine's `load_large` (`disker large`), filtered All / Over 10 GB / Unused
  * 1 year+ by the engine. Rows toggle on click, and each row's round check is
  * a `role="checkbox"` button (Space / Enter). "Move <total> to Trash" sends
  * exactly the selected paths to `trash_large` (REQ-DSCR-006) — always the

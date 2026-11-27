@@ -9,8 +9,8 @@ Concrete benchmark IDs locked in `metrics/baseline.json`. Each ID corresponds to
 | `scan-small` | 100-file tree | criterion `benches/scan.rs` | < 5 ms | `mk-bigtree.sh 100` |
 | `scan-medium` | 10k-file tree | criterion `benches/scan.rs` | < 100 ms | `mk-bigtree.sh 10000` |
 | `scan-large` | 100k-file tree | criterion `benches/scan.rs` | < 1500 ms | `mk-bigtree.sh 100000` |
-| `scan-vs-dua-10k` | 10k-file tree | hyperfine `bench-competitors.sh` | disky / dua ≤ 1.5× | `mk-bigtree.sh 10000` |
-| `scan-vs-dua-100k` | 100k-file tree | hyperfine `bench-competitors.sh` | disky / dua ≤ 1.3× | `mk-bigtree.sh 100000` |
+| `scan-vs-dua-10k` | 10k-file tree | hyperfine `bench-competitors.sh` | disker / dua ≤ 1.5× | `mk-bigtree.sh 10000` |
+| `scan-vs-dua-100k` | 100k-file tree | hyperfine `bench-competitors.sh` | disker / dua ≤ 1.3× | `mk-bigtree.sh 100000` |
 
 ## Query benchmarks (the amortized win)
 
@@ -20,7 +20,7 @@ Concrete benchmark IDs locked in `metrics/baseline.json`. Each ID corresponds to
 | `query-dirs` | 100k-row snapshot | criterion `benches/query.rs` | < 10 ms |
 | `query-ext` | 100k-row snapshot | criterion `benches/query.rs` | < 8 ms |
 | `query-stats` | 100k-row snapshot | criterion `benches/query.rs` | < 3 ms |
-| `query-x10-vs-dua-x10` | 100k tree, 10 queries | hyperfine | disky total < 1/10 of dua total |
+| `query-x10-vs-dua-x10` | 100k tree, 10 queries | hyperfine | disker total < 1/10 of dua total |
 
 ## Time-series benchmarks (v0.9.0+)
 

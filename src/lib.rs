@@ -1,5 +1,5 @@
-//! disky core — typed query + render + scan layers shared by the CLI, the TUI
-//! and the `disky-mcp` server.
+//! disker core — typed query + render + scan layers shared by the CLI, the TUI
+//! and the `disker-mcp` server.
 //!
 //! Stability: the JSON record shapes exposed by [`query`] are part of the
 //! agent-facing contract; bump [`query::SCHEMA_VERSION`] on any breaking

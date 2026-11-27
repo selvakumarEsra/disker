@@ -1,7 +1,7 @@
 /**
  * The snapshot's treemap split (snapshot.html `layout()`), ported verbatim
  * as a pure function (REQ-DSCR-012.A2). It lays out weights the engine
- * already computed (each child's physical bytes from `disky map`); it never
+ * already computed (each child's physical bytes from `disker map`); it never
  * walks or sizes files. Items keep their order — the engine sends them
  * largest first — and the rectangle is in percent of the treemap box.
  *

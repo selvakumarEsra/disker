@@ -237,7 +237,7 @@ function skippedPathsMustBeAWholeCount() {
 describe("GUI contract for cleaning, undo and errors (REQ-DCLEAN-008, REQ-DCLEAN-009, REQ-DCLEAN-018)", () => {
   it("clean progress events are parsed strictly (REQ-DCLEAN-008)", cleanProgressIsValidated);
   it("a restore result carries the report and the disk (REQ-DCLEAN-009.A4, A7)", restoreResultParsesTheReportAndDisk);
-  it("engine errors keep disky's exit-code slug (REQ-DCLEAN-018.A1)", engineErrorsKeepTheExitSlug);
+  it("engine errors keep disker's exit-code slug (REQ-DCLEAN-018.A1)", engineErrorsKeepTheExitSlug);
   it("the skipped-path count is a whole number (REQ-DCLEAN-018.A2)", skippedPathsMustBeAWholeCount);
 });
 

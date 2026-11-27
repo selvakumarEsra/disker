@@ -29,7 +29,7 @@ import "./spaceMap/spaceMap.css";
 
 /**
  * The Space map screen (REQ-DSCR-012): a treemap of one folder's immediate
- * children, from the engine's `load_map` (`disky map`). The engine supplies
+ * children, from the engine's `load_map` (`disker map`). The engine supplies
  * every size and the volume capacity; the screen lays the sizes out with the
  * snapshot's split algorithm and lets the user select and drill in.
  *

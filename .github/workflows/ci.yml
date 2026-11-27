@@ -184,7 +184,7 @@ jobs:
         run: npx tauri build
       - uses: actions/upload-artifact@v4
         with:
-          name: disky-gui-${{ runner.os }}
+          name: disker-gui-${{ runner.os }}
           path: |
             gui/src-tauri/target/release/bundle/deb/*.deb
             gui/src-tauri/target/release/bundle/appimage/*.AppImage

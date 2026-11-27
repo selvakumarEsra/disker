@@ -1,11 +1,11 @@
-# disky GUI
+# disker GUI
 
-Tauri 2 + SolidJS desktop client of the disky engine. Spec:
+Tauri 2 + SolidJS desktop client of the disker engine. Spec:
 [`specs/disk-cleanup.md`](../specs/disk-cleanup.md); pixel reference:
 [`specs/disk-cleanup/snapshot.html`](../specs/disk-cleanup/snapshot.html).
 
 The CLI stays canonical: the Tauri backend (`src-tauri/`) depends on the
-`disky` library crate and never reimplements scan, query or cleanup
+`disker` library crate and never reimplements scan, query or cleanup
 (REQ-DCLEAN-001). `gui/` is its own build — a standalone Cargo workspace,
 excluded from the root crate. CI runs its full regression suite on macOS and
 builds its bundles on Linux and Windows; the CLI release does not ship it yet.

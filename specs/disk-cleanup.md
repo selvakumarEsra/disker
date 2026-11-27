@@ -24,15 +24,15 @@ Resolved decisions (2026-11-24, recorded in AGENTS.md):
 
 - Surface: a Tauri + SolidJS desktop app in `gui/`, reinstated under the AGENTS.md "Amendment (2026-11-24) — desktop GUI reinstated" (earn-back criterion 2).
 - Design system: Organic, ratified for `gui/` by the AGENTS.md Design Feel exception. Its `--shadow-*` elevation tokens are allowed. The snapshot is the pixel reference.
-- Product name: the brand text reads "disky". The snapshot's "Diskee" is the one deliberate visual deviation.
-- Categories: the design's categories and their safe/review classification come from an extension of disky's cleanup engine (REQ-DCLEAN-033), and the CLI exposes them too.
+- Product name: the brand text reads "disker". The snapshot's "Diskee" is the one deliberate visual deviation.
+- Categories: the design's categories and their safe/review classification come from an extension of disker's cleanup engine (REQ-DCLEAN-033), and the CLI exposes them too.
 - Restore: a clean-history log (REQ-DCLEAN-034) backs Undo and History restore.
 - Scope: the app shell plus the Smart Clean flow. The Assistant, Space Map, Large files, Duplicates, History and Settings screens get their own specs. Until then their sidebar entries open a placeholder (REQ-DCLEAN-032), and the Settings values this spec reads use their defaults: trash-by-default on, safe-only preselection on, notifications on, assistant on.
 
 <!-- id: REQ-DCLEAN-001 -->
-## The GUI MUST be a desktop client of the disky engine and MUST NOT fork its logic
+## The GUI MUST be a desktop client of the disker engine and MUST NOT fork its logic
 
-The component ships as a Tauri + SolidJS desktop app in `gui/`. Scanning, querying, cleanup, history and restore MUST be done by the disky engine, either the `disky` library crate called from the Tauri backend or the CLI's `--format json` envelopes. The GUI MUST NOT reimplement any of them. Every mutation goes through disky's cleanup contract: dry-run by default, apply only on explicit confirmation, and reversible by default.
+The component ships as a Tauri + SolidJS desktop app in `gui/`. Scanning, querying, cleanup, history and restore MUST be done by the disker engine, either the `disker` library crate called from the Tauri backend or the CLI's `--format json` envelopes. The GUI MUST NOT reimplement any of them. Every mutation goes through disker's cleanup contract: dry-run by default, apply only on explicit confirmation, and reversible by default.
 
 implementations:
   - gui/src-tauri/src/main.rs:load_cleanup_view
@@ -56,7 +56,7 @@ verifies:
 
 **Acceptance**
 <!-- id: REQ-DCLEAN-001.A1 -->
-- Every operation the GUI performs (scan, list categories, clean, undo, restore) has an equivalent `disky` CLI command that produces the same result on the same snapshot.
+- Every operation the GUI performs (scan, list categories, clean, undo, restore) has an equivalent `disker` CLI command that produces the same result on the same snapshot.
 <!-- id: REQ-DCLEAN-001.A2 -->
 - No code path removes or moves a file without passing through the confirmation contract in REQ-DCLEAN-007.
 <!-- id: REQ-DCLEAN-001.A3 -->
@@ -224,7 +224,7 @@ verifies:
 <!-- id: REQ-DCLEAN-004.A2 -->
 - On completion, the component enters the results phase automatically.
 <!-- id: REQ-DCLEAN-004.A3 -->
-- Activating "Stop" ends the scan and returns to idle; no results are shown and no file is modified. The partial snapshot disky keeps on cancel is not offered for review.
+- Activating "Stop" ends the scan and returns to idle; no results are shown and no file is modified. The partial snapshot disker keeps on cancel is not offered for review.
 <!-- id: REQ-DCLEAN-004.A4 -->
 - Category row sizes appear only once that category is complete; no size is shown speculatively.
 <!-- id: REQ-DCLEAN-004.A5 -->
@@ -235,7 +235,7 @@ verifies:
 
 The heading reads "Found <total> you can clear", where the total is the sum of all listed categories. The kicker reads "Scan finished · <n> categories", or "Prepared by <agent> · review before cleaning" when the assistant opened the review. Each category row shows a selection control, an icon, the name, a safety tag ("Safe" or "Review"), a one-line description, its size, and a disclosure control. Expanding a row lists its items as name, path and size.
 
-The icon is the Lucide icon name the engine table gives each category (`cleanup::Category::icon`, carried on `CategoryView` and `CatalogueEntry` and listed by `disky schema`). The GUI resolves it by icon name, never by category id, and falls back to a folder for a name it does not know.
+The icon is the Lucide icon name the engine table gives each category (`cleanup::Category::icon`, carried on `CategoryView` and `CatalogueEntry` and listed by `disker schema`). The GUI resolves it by icon name, never by category id, and falls back to a folder for a name it does not know.
 
 implementations:
   - gui/src/screens/smartClean/Results.tsx:Results
@@ -707,7 +707,7 @@ verifies:
 <!-- id: REQ-DCLEAN-018 -->
 ## Failures MUST surface as an error state that names the cause and a recovery action
 
-The snapshot shows no error state. This REQ is gap-filled from disky's error taxonomy.
+The snapshot shows no error state. This REQ is gap-filled from disker's error taxonomy.
 
 implementations:
   - src/scan.rs:run_observed
@@ -754,7 +754,7 @@ verifies:
 
 **Acceptance**
 <!-- id: REQ-DCLEAN-018.A1 -->
-- A scan that cannot start because the snapshot is locked by another process shows an error naming that cause, with a "Try again" action. The copy reads "Another disky process is using the snapshot. Try again in a moment."
+- A scan that cannot start because the snapshot is locked by another process shows an error naming that cause, with a "Try again" action. The copy reads "Another disker process is using the snapshot. Try again in a moment."
 <!-- id: REQ-DCLEAN-018.A2 -->
 - A scan that cannot read some paths for permission reasons completes, shows results for the readable paths, and states how many paths were skipped, with a link that opens the Full Disk Access pane in System Settings.
 <!-- id: REQ-DCLEAN-018.A3 -->
@@ -972,7 +972,7 @@ verifies:
 - The results list scrolls independently of the header and footer at every window size.
 
 <!-- id: REQ-DCLEAN-027 -->
-## The component MUST consume a defined data shape derived from a disky snapshot
+## The component MUST consume a defined data shape derived from a disker snapshot
 
 Inputs:
 
@@ -1132,7 +1132,7 @@ verifies:
 <!-- id: REQ-DCLEAN-030.A3 -->
 - The results phase renders categories with up to 200 items per category without blocking input; beyond 200, the list shows the largest 200 and a "+N more" line.
 <!-- id: REQ-DCLEAN-030.A4 -->
-- Computing results from an existing snapshot completes within the same order as `disky cleanup` today (sub-second on a 1.77 M-row snapshot).
+- Computing results from an existing snapshot completes within the same order as `disker cleanup` today (sub-second on a 1.77 M-row snapshot).
 <!-- id: REQ-DCLEAN-030.A5 -->
 - Progress UI updates at least as often as the scan's progress-event cadence, and never more than once per frame.
 
@@ -1179,8 +1179,8 @@ verifies:
   - gui/src/shell/__tests__/nav.test.ts:navHasSevenEntriesInSnapshotOrder
   - gui/src/shell/__tests__/nav.test.ts:onlyAssistantCarriesBadge
   - gui/src/shell/__tests__/nav.test.ts:navRoutesAreUniqueAndSmartCleanIsHome
-  - gui/src/shell/__tests__/Shell.test.tsx:brandAndTitleBarReadDisky
-  - gui/src/shell/__tests__/Shell.test.tsx:windowTitleIsDisky
+  - gui/src/shell/__tests__/Shell.test.tsx:brandAndTitleBarReadDisker
+  - gui/src/shell/__tests__/Shell.test.tsx:windowTitleIsDisker
   - gui/src/shell/__tests__/Shell.test.tsx:everyNavRouteRendersARealScreen
   - gui/src/shell/__tests__/Shell.test.tsx:sidebarShowsSevenEntriesAndAssistantBadge
   - gui/src/shell/__tests__/Shell.test.tsx:meterShowsFixtureFreeSpaceAndGoal
@@ -1198,7 +1198,7 @@ verifies:
 <!-- id: REQ-DCLEAN-032.A1 -->
 - At 1200 × 780, a screenshot of each Smart Clean phase matches the corresponding `snapshot.html` screen. The only allowed differences are the brand text, live data in place of fixture data, and font antialiasing. The comparison threshold is 1% of differing pixels.
 <!-- id: REQ-DCLEAN-032.A2 -->
-- The brand text reads "disky" everywhere the snapshot shows "Diskee", including the window title.
+- The brand text reads "disker" everywhere the snapshot shows "Diskee", including the window title.
 <!-- id: REQ-DCLEAN-032.A3 -->
 - The Assistant, Space Map, Large files, Duplicates, History and Settings entries render exactly as in the snapshot. Activating one opens a placeholder screen with the screen's title and the line "Coming soon". Each is replaced when its own spec is implemented.
 <!-- id: REQ-DCLEAN-032.A4 -->
@@ -1239,7 +1239,7 @@ verifies:
 
 **Acceptance**
 <!-- id: REQ-DCLEAN-033.A1 -->
-- `disky cleanup --format json` emits each hit with a `category` and a `safety` field. Existing developer-artefact categories keep their names, and their `safety` is `review`.
+- `disker cleanup --format json` emits each hit with a `category` and a `safety` field. Existing developer-artefact categories keep their names, and their `safety` is `review`.
 <!-- id: REQ-DCLEAN-033.A2 -->
 - Each new category's locations and its safety class are defined in one table in the engine, not in `gui/`. The GUI shows exactly what the engine returns.
 <!-- id: REQ-DCLEAN-033.A3 -->
@@ -1291,7 +1291,7 @@ verifies:
 <!-- id: REQ-DCLEAN-034.A1 -->
 - Every applied clean, from the CLI or the GUI, appends one entry: an id, a timestamp, a mode (`trash` or `delete`), the categories, the freed bytes, and for each item its original path, its Trash path (null in delete mode) and its bytes.
 <!-- id: REQ-DCLEAN-034.A2 -->
-- `disky history --format json` lists the entries newest first, and `disky restore <id>` moves every trashed item of that entry back to its original path and marks the entry restored.
+- `disker history --format json` lists the entries newest first, and `disker restore <id>` moves every trashed item of that entry back to its original path and marks the entry restored.
 <!-- id: REQ-DCLEAN-034.A3 -->
 - Restore never overwrites an existing file at the original path. That item is reported as a conflict and left in the Trash.
 <!-- id: REQ-DCLEAN-034.A4 -->
@@ -1299,5 +1299,5 @@ verifies:
 <!-- id: REQ-DCLEAN-034.A5 -->
 - A clean in delete mode records an entry that can't be restored, and restore refuses it with a clear error.
 <!-- id: REQ-DCLEAN-034.A6 -->
-- The log lives in disky's data directory, next to the snapshots, and survives app restarts.
+- The log lives in disker's data directory, next to the snapshots, and survives app restarts.
 

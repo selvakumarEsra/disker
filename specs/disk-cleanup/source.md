@@ -1,7 +1,7 @@
 # Disk Cleanup — Claude Design import (handoff bundle)
 
 **Imported:** 2026-11-24
-**Handoff bundle:** /private/tmp/claude-502/-Users-superdeveloper-dev-claude-projects-disky/bc0b213e-b304-414f-90ff-9504fc78968c/scratchpad/handoff-disk-cleanup/disk-cleanup-tool-design
+**Handoff bundle:** /private/tmp/claude-502/-Users-superdeveloper-dev-claude-projects-disker/bc0b213e-b304-414f-90ff-9504fc78968c/scratchpad/handoff-disk-cleanup/disk-cleanup-tool-design
 **Chosen file:** `project/Disk Cleanup.dc.html` (62,140 bytes; `cmp` verified identical)
 
 **Snapshot:** snapshot.html (byte-for-byte capture)

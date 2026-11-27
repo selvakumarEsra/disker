@@ -25,9 +25,9 @@ use std::sync::atomic::AtomicBool;
 use std::sync::Arc;
 use std::time::Duration;
 
-use disky::contract;
-use disky::prefs;
-use disky::{scan as engine_scan, snapshots};
+use disker::contract;
+use disker::prefs;
+use disker::{scan as engine_scan, snapshots};
 use tauri::{AppHandle, Emitter, Manager};
 use tauri_plugin_notification::NotificationExt;
 
@@ -47,7 +47,7 @@ pub const FOCUS_HOME_EVENT: &str = "assistant://focus-home";
 /// Start ticking on a thread of its own.
 pub fn spawn(app: AppHandle) {
     std::thread::Builder::new()
-        .name("disky-checks".into())
+        .name("disker-checks".into())
         .spawn(move || run(&app, &crate::scheduler::SystemClock))
         .expect("spawn the checks thread");
 }
@@ -76,7 +76,7 @@ fn gather(app: &AppHandle) -> Option<Inputs> {
         warn_below_goal: p.warn_below_goal,
         free_bytes: disk.free_bytes,
         goal_bytes: p.goal_bytes,
-        latest_scan_secs: disky::assistant::latest_scan_secs(),
+        latest_scan_secs: disker::assistant::latest_scan_secs(),
         busy: app.state::<Engine>().busy(),
     })
 }
@@ -113,7 +113,7 @@ fn emit_view(app: &AppHandle) {
 fn start_background_scan(app: &AppHandle) {
     let app = app.clone();
     let _ = std::thread::Builder::new()
-        .name("disky-background-scan".into())
+        .name("disker-background-scan".into())
         .spawn(move || {
             let engine = app.state::<Engine>();
             // Never overlaps another scan, and never waits for one.

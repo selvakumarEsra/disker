@@ -12,7 +12,7 @@
 use anyhow::Result;
 use std::path::{Path, PathBuf};
 
-/// The operating systems disky knows how to talk to.
+/// The operating systems disker knows how to talk to.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Os {
     MacOs,
@@ -87,7 +87,7 @@ pub fn home_str() -> Option<String> {
     home_dir().map(|h| to_slash(&h))
 }
 
-/// The per-user data folder disky's own folder lives in
+/// The per-user data folder disker's own folder lives in
 /// (REQ-XPLAT-002.A3): `~/Library/Application Support` (macOS),
 /// `$XDG_DATA_HOME` or `~/.local/share` (Linux), `%LOCALAPPDATA%`
 /// (Windows). The environment wins on Windows too.
@@ -109,7 +109,31 @@ pub fn data_local_dir() -> Option<PathBuf> {
     dirs::data_local_dir()
 }
 
-/// What `disky scan` scans with no path (REQ-XPLAT-002.A1): `/`, or the
+/// The name of disker's own folders in the data and config directories.
+pub const NAME: &str = "disker";
+
+/// The project's former name. An earlier version kept its snapshots,
+/// preferences, history and config in folders of this name
+/// (REQ-RENAME-002).
+pub const FORMER_NAME: &str = "disky";
+
+/// `parent/disker`. When it does not exist yet but `parent/<FORMER_NAME>`
+/// does, that folder is renamed to it first, so earlier data carries over
+/// unchanged (REQ-RENAME-002.A1). An existing `disker` folder is never
+/// replaced or merged into (A2), and a failed rename leaves both folders
+/// as they were (A3).
+pub fn carry_over_legacy(parent: &Path) -> PathBuf {
+    let new = parent.join(NAME);
+    if !new.exists() {
+        let old = parent.join(FORMER_NAME);
+        if old.is_dir() {
+            let _ = std::fs::rename(&old, &new);
+        }
+    }
+    new
+}
+
+/// What `disker scan` scans with no path (REQ-XPLAT-002.A1): `/`, or the
 /// system drive's root on Windows.
 pub fn default_root() -> String {
     if cfg!(windows) {
@@ -316,6 +340,45 @@ pub fn file_manager_name() -> &'static str {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn legacy_folder_moves_once() {
+        let t = tempfile::tempdir().unwrap();
+        let old = t.path().join(FORMER_NAME);
+        std::fs::create_dir(&old).unwrap();
+        std::fs::write(old.join("history.json"), b"[1]").unwrap();
+        std::fs::write(old.join("2026-01-01_00-00.db"), b"db").unwrap();
+        let dir = carry_over_legacy(t.path());
+        assert_eq!(dir, t.path().join(NAME));
+        assert!(!old.exists(), "the former folder is renamed, not copied");
+        assert_eq!(std::fs::read(dir.join("history.json")).unwrap(), b"[1]");
+        assert!(dir.join("2026-01-01_00-00.db").exists());
+        // A later lookup finds the new folder and does nothing more.
+        assert_eq!(carry_over_legacy(t.path()), dir);
+        assert!(!old.exists());
+    }
+
+    #[test]
+    fn existing_new_folder_is_never_replaced() {
+        let t = tempfile::tempdir().unwrap();
+        let old = t.path().join(FORMER_NAME);
+        let new = t.path().join(NAME);
+        std::fs::create_dir(&old).unwrap();
+        std::fs::create_dir(&new).unwrap();
+        std::fs::write(old.join("prefs.json"), b"old").unwrap();
+        std::fs::write(new.join("prefs.json"), b"new").unwrap();
+        assert_eq!(carry_over_legacy(t.path()), new);
+        assert_eq!(std::fs::read(new.join("prefs.json")).unwrap(), b"new");
+        assert_eq!(
+            std::fs::read(old.join("prefs.json")).unwrap(),
+            b"old",
+            "left untouched"
+        );
+        // Neither folder: nothing is created by the lookup itself.
+        let empty = tempfile::tempdir().unwrap();
+        assert_eq!(carry_over_legacy(empty.path()), empty.path().join(NAME));
+        assert!(!empty.path().join(NAME).exists());
+    }
 
     #[test]
     fn windows_paths_become_forward_slashes() {

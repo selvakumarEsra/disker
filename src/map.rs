@@ -1,6 +1,6 @@
 //! Space map (REQ-DSCR-003): a folder's immediate children by physical size.
 //!
-//! `disky map [<path>]` and the GUI's Space map read the same [`map`] call:
+//! `disker map [<path>]` and the GUI's Space map read the same [`map`] call:
 //! one grouped DuckDB query over the snapshot rows beneath the folder — no
 //! per-child loop — so a 1 M-row snapshot answers in well under a second.
 //!
@@ -11,7 +11,7 @@ use duckdb::types::Value;
 use duckdb::Connection;
 use serde::{Deserialize, Serialize};
 
-use crate::exit::{DiskyError, ExitCode};
+use crate::exit::{DiskerError, ExitCode};
 
 /// One immediate child of the mapped folder.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -26,7 +26,7 @@ pub struct MapChild {
     pub has_children: bool,
 }
 
-/// A mapped folder: what `disky map` prints and the Space map renders.
+/// A mapped folder: what `disker map` prints and the Space map renders.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct MapView {
     /// The folder mapped (absolute, no trailing `/` except for `/`).
@@ -138,10 +138,10 @@ pub fn map(
     let root = crate::db::read_scan_meta(conn)
         .map(|m| normalize(&m.root))
         .ok_or_else(|| {
-            DiskyError::new(
+            DiskerError::new(
                 ExitCode::NotFound,
                 "snapshot has no scan root",
-                "the snapshot carries no scan metadata; re-run `disky scan`",
+                "the snapshot carries no scan metadata; re-run `disker scan`",
             )
         })?;
     let folder = path.map_or_else(|| root.clone(), normalize);
@@ -155,7 +155,7 @@ pub fn map(
                 )
                 .map(|n| n > 0)?);
     if !listed {
-        return Err(DiskyError::new(
+        return Err(DiskerError::new(
             ExitCode::NotFound,
             "folder not in snapshot",
             format!("{folder} is not a folder in this snapshot (scan root: {root})"),

@@ -1477,8 +1477,8 @@ dependencies = [
 ]
 
 [[package]]
-name = "disky"
-version = "0.11.0"
+name = "disker"
+version = "0.12.0"
 dependencies = [
  "anyhow",
  "arboard",
@@ -1505,11 +1505,11 @@ dependencies = [
 ]
 
 [[package]]
-name = "disky-gui"
+name = "disker-gui"
 version = "0.1.0"
 dependencies = [
  "anyhow",
- "disky",
+ "disker",
  "serde",
  "serde_json",
  "tauri",

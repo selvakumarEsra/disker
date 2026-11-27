@@ -47,7 +47,7 @@ function bundledFontCss(): string {
  * Render specs/disk-cleanup/snapshot.html as the visual reference.
  * Its runtime loads React/Babel from unpkg; those responses are cached under
  * __baseline__/cdn so later runs are offline. Allowed deviations applied:
- * brand text "Diskee" → "disky" (A2), and the window's rounded corners and
+ * brand text "Diskee" → "disker" (A2), and the window's rounded corners and
  * drop shadow are removed because macOS draws them around the real window.
  * With `startScreen`, the prototype opens on that screen: its `startScreen`
  * prop default is rewritten before the runtime boots (DOMContentLoaded), as
@@ -124,10 +124,10 @@ export async function openSnapshot(
   await page.evaluate(() => {
     const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
     for (let n = walker.nextNode(); n; n = walker.nextNode()) {
-      if (n.nodeValue?.includes("Diskee")) n.nodeValue = n.nodeValue.replaceAll("Diskee", "disky");
+      if (n.nodeValue?.includes("Diskee")) n.nodeValue = n.nodeValue.replaceAll("Diskee", "disker");
     }
     for (const el of document.querySelectorAll("[aria-label*=Diskee]")) {
-      el.setAttribute("aria-label", el.getAttribute("aria-label")!.replaceAll("Diskee", "disky"));
+      el.setAttribute("aria-label", el.getAttribute("aria-label")!.replaceAll("Diskee", "disker"));
     }
     const w = document.querySelector<HTMLElement>('[data-screen-label="App window"]')!;
     w.style.borderRadius = "0";

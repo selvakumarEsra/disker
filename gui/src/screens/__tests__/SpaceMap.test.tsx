@@ -11,7 +11,7 @@ import { HINT, NO_SCANS } from "../spaceMap/mapCopy";
 
 const GB = 1e9;
 
-/** The snapshot's MAP, as `disky map` answers it per folder. */
+/** The snapshot's MAP, as `disker map` answers it per folder. */
 const FOLDERS: Record<string, { name: string; total: number; kids: [string, number, boolean][] }> = {
   "/": {
     name: "/",

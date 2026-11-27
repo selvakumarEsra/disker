@@ -1203,7 +1203,7 @@ async function lockHeldScanNamesTheCauseWithTryAgain() {
   const err = await screen.findByTestId("scan-error");
   expect(err).toHaveAttribute("role", "alert");
   expect(err).toHaveClass("error-state");
-  expect(err).toHaveTextContent(/^Another disky process is using the snapshot\. Try again in a moment\.Try again$/);
+  expect(err).toHaveTextContent(/^Another disker process is using the snapshot\. Try again in a moment\.Try again$/);
   fireEvent.click(within(err).getByRole("button", { name: "Try again" }));
   await waitFor(() => expect(scans).toBe(2));
 }

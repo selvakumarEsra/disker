@@ -14,7 +14,7 @@ import { EMPTY, NO_SCANS, eachLabel, extraCopies, footNote, freedBytes, kicker, 
 const GB = 1e9;
 const MB = 1e6;
 
-/** The snapshot's DUPES, as `disky dupes` reports them: name, bytes per copy, copy folders. */
+/** The snapshot's DUPES, as `disker dupes` reports them: name, bytes per copy, copy folders. */
 const GROUPS: [string, number, string[]][] = [
   ["IMG_2041.HEIC", 6 * MB, ["~/Pictures/Photos Library", "~/Desktop/to sort", "~/Downloads"]],
   ["Brand guidelines v3.pdf", 184 * MB, ["~/Documents/Work", "~/Downloads", "~/Desktop"]],

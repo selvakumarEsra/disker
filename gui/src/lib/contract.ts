@@ -159,11 +159,11 @@ export interface RestoreResult {
   disk: Disk;
 }
 
-/** disky's exit-code slug for a snapshot locked by another process. */
+/** disker's exit-code slug for a snapshot locked by another process. */
 export const LOCK_HELD = "lock-held";
 
 /**
- * A failed engine command (REQ-DCLEAN-018), typed by disky's exit-code slug
+ * A failed engine command (REQ-DCLEAN-018), typed by disker's exit-code slug
  * (`code`: "lock-held", "io", …). Dispatch on `code`, never on `detail`.
  */
 export class EngineError extends Error {
@@ -298,7 +298,7 @@ function oneOf<T extends string>(v: unknown, allowed: readonly T[], path: string
   return v as T;
 }
 
-/** The preferences record (`disky prefs`), validated field by field. */
+/** The preferences record (`disker prefs`), validated field by field. */
 export function parsePreferences(raw: unknown, path = "prefs"): Preferences {
   const p = obj(raw, path);
   const c = obj(p.checks, `${path}.checks`);
@@ -453,7 +453,7 @@ export interface HistoryView {
   rows: HistoryRow[];
 }
 
-/** The History screen's view (REQ-DSCR-015). CLI: `disky history --format json`. */
+/** The History screen's view (REQ-DSCR-015). CLI: `disker history --format json`. */
 export function parseHistoryView(raw: unknown): HistoryView {
   const o = obj(raw, "history");
   return {
@@ -479,7 +479,7 @@ export interface MapChild {
   has_children: boolean;
 }
 
-/** A mapped folder. CLI: `disky map [<path>] --format json`. */
+/** A mapped folder. CLI: `disker map [<path>] --format json`. */
 export interface MapView {
   path: string;
   name: string;
@@ -528,7 +528,7 @@ export function parseMapView(raw: unknown): MapView {
   };
 }
 
-/** Which large files to list (REQ-DSCR-004.A2): `disky large --filter`. */
+/** Which large files to list (REQ-DSCR-004.A2): `disker large --filter`. */
 export type LargeFilter = "all" | "over-10gb" | "unused-1y";
 export const LARGE_FILTERS: readonly LargeFilter[] = ["all", "over-10gb", "unused-1y"];
 
@@ -546,7 +546,7 @@ export interface LargeFile {
   unused_1y: boolean;
 }
 
-/** The Large files screen's list: `disky large --format json`. */
+/** The Large files screen's list: `disker large --format json`. */
 export interface LargeView {
   filter: LargeFilter;
   count: number;
@@ -576,7 +576,7 @@ export function parseLargeView(raw: unknown): LargeView {
   };
 }
 
-/** What moving reviewed files to the Trash did (REQ-DSCR-006.A1): `disky trash`. */
+/** What moving reviewed files to the Trash did (REQ-DSCR-006.A1): `disker trash`. */
 export interface TrashResult {
   handled: string[];
   failed: Failure[];
@@ -619,7 +619,7 @@ export interface DupeGroup {
   copies: DupeCopy[];
 }
 
-/** The Duplicates screen's groups: `disky dupes --format json`. */
+/** The Duplicates screen's groups: `disker dupes --format json`. */
 export interface DupesView {
   min_size: number;
   groups: number;
@@ -662,7 +662,7 @@ export type SuggestionKey = "goal" | "ok" | "dev" | "dl" | "left";
 export const SUGGESTION_KEYS: readonly SuggestionKey[] = ["goal", "ok", "dev", "dl", "left"];
 export const CHECK_FREQUENCIES: readonly CheckFrequency[] = ["hourly", "daily", "weekly"];
 
-/** One Assistant suggestion (`disky suggest`, `src/assistant.rs`). */
+/** One Assistant suggestion (`disker suggest`, `src/assistant.rs`). */
 export interface Suggestion {
   key: SuggestionKey;
   /** "Goal", "On track", "Suggestion" or "Heads-up". */
@@ -678,7 +678,7 @@ export interface Suggestion {
   at: string | null;
 }
 
-/** One agent CLI and whether it is installed (`disky agents`, REQ-DSCR-007). */
+/** One agent CLI and whether it is installed (`disker agents`, REQ-DSCR-007). */
 export interface Agent {
   id: string;
   name: string;

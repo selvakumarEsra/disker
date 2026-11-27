@@ -10,10 +10,12 @@ pub fn parse_id(id: &str) -> Option<DateTime<Local>> {
     Local.from_local_datetime(&naive).single()
 }
 
+/// `<data dir>/disker`, carrying over the folder an earlier version wrote
+/// under the project's former name (REQ-RENAME-002).
 pub fn snapshot_dir() -> PathBuf {
-    crate::platform::data_local_dir()
-        .unwrap_or_else(|| PathBuf::from("~/.local/share"))
-        .join("disky")
+    let parent =
+        crate::platform::data_local_dir().unwrap_or_else(|| PathBuf::from("~/.local/share"));
+    crate::platform::carry_over_legacy(&parent)
 }
 
 pub fn new_snapshot_path() -> Result<String> {
@@ -61,7 +63,7 @@ pub fn list_snapshots() -> Vec<(String, u64)> {
 pub fn resolve(spec: &str) -> Result<String> {
     if spec == "@latest" {
         return latest_snapshot()
-            .ok_or_else(|| anyhow!("no snapshot found; run `disky scan` first (not found)"));
+            .ok_or_else(|| anyhow!("no snapshot found; run `disker scan` first (not found)"));
     }
     // Time-relative ref: `@latest~N` → N-th newest (0 = latest).
     if let Some(rest) = spec.strip_prefix("@latest~") {
@@ -72,7 +74,7 @@ pub fn resolve(spec: &str) -> Result<String> {
         // list_snapshots returns name-sorted ascending; newest at end.
         if snaps.is_empty() {
             return Err(anyhow!(
-                "no snapshot found; run `disky scan` first (not found)"
+                "no snapshot found; run `disker scan` first (not found)"
             ));
         }
         let idx = snaps.len().checked_sub(n + 1).ok_or_else(|| {

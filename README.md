@@ -1,4 +1,4 @@
-# disky
+# disker
 
 > **Fast disk analyzer and cleanup tool for macOS, Linux and Windows, in Rust.**
 > Scan 2M files in minutes, clean up into the Trash and restore later, emit
@@ -12,24 +12,24 @@
 
 ---
 
-## Why disky?
+## Why disker?
 
-| | disky | ncdu | dust | du | GrandPerspective |
+| | disker | ncdu | dust | du | GrandPerspective |
 |---|---|---|---|---|---|
 | Scan speed (2M files) | **~3 min** | ~8 min | ~2 min | ~5 min | ~6 min |
 | Stores snapshots | ✅ DuckDB | ❌ | ❌ | ❌ | ✅ proprietary |
-| Diff between scans | ✅ `disky diff` | ❌ | ❌ | ❌ | ❌ |
+| Diff between scans | ✅ `disker diff` | ❌ | ❌ | ❌ | ❌ |
 | TUI explorer | ✅ ratatui | ✅ | ✅ | ❌ | n/a (GUI) |
-| Cleanup with restore | ✅ Trash + `disky restore` | ❌ | ❌ | ❌ | manual |
+| Cleanup with restore | ✅ Trash + `disker restore` | ❌ | ❌ | ❌ | manual |
 | Desktop app | ✅ Tauri | ❌ | ❌ | ❌ | ✅ |
 | APFS sparse-file aware | ✅ `--physical` | ❌ | ❌ | ❌ | ✅ |
 | JSON output for agents | ✅ everywhere | ❌ | ❌ | ❌ | ❌ |
 | Stable exit codes / RFC 9457 errors | ✅ | ❌ | ❌ | ❌ | ❌ |
 | Platforms | macOS, Linux, Windows | macOS, Linux | all three | Unix | macOS |
 
-disky is the only one that treats the *AI agent* as a first-class consumer:
+disker is the only one that treats the *AI agent* as a first-class consumer:
 every command emits structured JSON, RFC 9457 problem details on stderr, stable
-exit codes, and a `disky schema` descriptor so an LLM can bind without
+exit codes, and a `disker schema` descriptor so an LLM can bind without
 prompt-engineering.
 
 ## Install
@@ -48,54 +48,51 @@ Windows: the bundled DuckDB needs the **Visual Studio 2022** C++ build tools
 (it does not compile with Visual Studio 2026 yet). Building inside a clone on
 Linux links with clang + mold (`.cargo/config.toml`), so install both first.
 
-The `disky` crate on crates.io is the original project's and does not include
-this fork's Linux, Windows or desktop-app work.
-
 ## Quick start
 
 ```bash
-disky scan /                       # scan from root (~3 min for 2M files)
-disky                              # open ncdu-style TUI
+disker scan /                       # scan from root (~3 min for 2M files)
+disker                              # open ncdu-style TUI
 
-disky top --physical               # largest files (physical bytes — APFS-aware)
-disky dirs --physical              # largest directories
-disky ext                          # usage by extension
-disky find "*.log"                 # find by glob
-disky stats --physical             # totals
-disky list                         # snapshot IDs + sizes
+disker top --physical               # largest files (physical bytes — APFS-aware)
+disker dirs --physical              # largest directories
+disker ext                          # usage by extension
+disker find "*.log"                 # find by glob
+disker stats --physical             # totals
+disker list                         # snapshot IDs + sizes
 
-disky cleanup --snapshot @latest                # dry-run preview
-disky cleanup --target node_modules --apply --reversible   # → Trash / Recycle Bin
-disky history                                   # every applied clean
-disky restore <id>                              # put a clean back
+disker cleanup --snapshot @latest                # dry-run preview
+disker cleanup --target node_modules --apply --reversible   # → Trash / Recycle Bin
+disker history                                   # every applied clean
+disker restore <id>                              # put a clean back
 ```
 
 ### Space, large files and duplicates
 
 ```bash
-disky map ~ --tiles 20             # a folder's children by physical size
-disky large --filter unused-1y     # files ≥ 2 GB not opened for a year
-disky dupes --min-size 1MB         # byte-identical files (content hash)
-disky trash ~/old.iso --title "Large files"   # to the Trash, restorable
+disker map ~ --tiles 20             # a folder's children by physical size
+disker large --filter unused-1y     # files ≥ 2 GB not opened for a year
+disker dupes --min-size 1MB         # byte-identical files (content hash)
+disker trash ~/old.iso --title "Large files"   # to the Trash, restorable
 ```
 
 ### Preferences and suggestions
 
 ```bash
-disky prefs                                    # shared with the desktop app
-disky prefs --set goal_bytes=100GB --set excluded='~/Projects/active'
-disky suggest                                  # what the Assistant would suggest
-disky agents                                   # which agent CLIs are installed
+disker prefs                                    # shared with the desktop app
+disker prefs --set goal_bytes=100GB --set excluded='~/Projects/active'
+disker suggest                                  # what the Assistant would suggest
+disker agents                                   # which agent CLIs are installed
 ```
 
 ### Snapshot diff & growth
 
 ```bash
-disky scan /                       # before
+disker scan /                       # before
 # … time passes …
-disky scan /                       # after
-disky diff @latest~1 @latest       # what grew, shrank, was added or removed
-disky growth --over-n 5            # OLS fit across 5 most-recent snapshots
+disker scan /                       # after
+disker diff @latest~1 @latest       # what grew, shrank, was added or removed
+disker growth --over-n 5            # OLS fit across 5 most-recent snapshots
 ```
 
 ### Agent-native output
@@ -114,11 +111,11 @@ Exit codes: `0` ok · `1` generic · `2` usage · `3` io · `4` not-found ·
 
 ### Composing commands
 
-Chain disky commands through `disky filter` — predicate DSL, no re-scan:
+Chain disker commands through `disker filter` — predicate DSL, no re-scan:
 
 ```bash
-disky top --format json | disky filter --where "size > 1GB AND ext = 'log'"
-disky growth --format json | disky filter --where "delta_bytes > 100MB"
+disker top --format json | disker filter --where "size > 1GB AND ext = 'log'"
+disker growth --format json | disker filter --where "delta_bytes > 100MB"
 ```
 
 ## How it's fast
@@ -156,25 +153,25 @@ useful when you want to know what applications *think* the file is.
 Default is **dry-run** — you see exactly what would be removed before
 anything happens. Pass `--apply` to act, and `--reversible` to send files to
 the Trash (the Recycle Bin on Windows, the freedesktop Trash on Linux)
-instead of deleting them. Every applied clean is logged, and `disky restore
+instead of deleting them. Every applied clean is logged, and `disker restore
 <id>` moves trashed items back without ever overwriting a file. By default
-anything modified in the last 30 days is left alone. The guided `/disky` Claude Code skill
+anything modified in the last 30 days is left alone. The guided `/disker` Claude Code skill
 confirms every target via `AskUserQuestion` before applying.
 
 ### Is there an MCP server?
 
-Not anymore. `disky-mcp` was dropped in v0.10.0 — the CLI is the only surface.
+Not anymore. `disker-mcp` was dropped in v0.10.0 — the CLI is the only surface.
 Every consumer (Claude Code, Cursor, agents) shells out and reads the JSON
 envelope. Less duplication, one contract. Resurrection path is documented in
 the v0.10.0 CHANGELOG entry if a non-shelling host actually shows up.
 
-### How does disky compare to `dust`?
+### How does disker compare to `dust`?
 
-`dust` is faster at raw traversal because it doesn't persist anything. disky
+`dust` is faster at raw traversal because it doesn't persist anything. disker
 trades ~30% scan time for a DuckDB snapshot you can diff, query with SQL, and
 re-run cleanup against without re-scanning. If you scan once and forget,
 dust wins. If you want to track disk usage over weeks or feed an agent,
-disky wins.
+disker wins.
 
 ### Does it work on Linux and Windows?
 
@@ -187,10 +184,10 @@ is macOS only. On Windows the physical size is the file length.
 ## Snapshots
 
 ```bash
-disky list                                # show all snapshots
-disky tui --snapshot 2026-05-15_11-56     # open by ID
-disky tui --snapshot /path/to/snap.db     # arbitrary path
-disky forget --keep-last 7 --apply        # restic-style retention
+disker list                                # show all snapshots
+disker tui --snapshot 2026-05-15_11-56     # open by ID
+disker tui --snapshot /path/to/snap.db     # arbitrary path
+disker forget --keep-last 7 --apply        # restic-style retention
 ```
 
 Snapshots (`YYYY-MM-DD_HH-MM.db`), `prefs.json` and `history.json` live in the
@@ -198,9 +195,9 @@ data directory:
 
 | OS | Data directory |
 |---|---|
-| macOS | `~/Library/Application Support/disky` |
-| Linux | `$XDG_DATA_HOME/disky` or `~/.local/share/disky` |
-| Windows | `%LOCALAPPDATA%\disky` |
+| macOS | `~/Library/Application Support/disker` |
+| Linux | `$XDG_DATA_HOME/disker` or `~/.local/share/disker` |
+| Windows | `%LOCALAPPDATA%\disker` |
 
 The default scan root is `/`, or `%SystemDrive%/` on Windows.
 
@@ -208,7 +205,7 @@ The default scan root is `/`, or `%SystemDrive%/` on Windows.
 
 `gui/` is a Tauri 2 + SolidJS app on the same engine: Smart Clean, Space map,
 Large files, Duplicates, Assistant, History and Settings. It never walks,
-sums or deletes files itself; everything goes through the `disky` library,
+sums or deletes files itself; everything goes through the `disker` library,
 so whatever the app does, the CLI can do too.
 
 ```bash

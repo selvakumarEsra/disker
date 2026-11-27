@@ -1,4 +1,4 @@
-//! Predicate engine for `disky filter`. Tiny hand-rolled tokenizer +
+//! Predicate engine for `disker filter`. Tiny hand-rolled tokenizer +
 //! evaluator over a small DSL: `<field> <op> <literal>` connected by
 //! optional `AND`.
 //!

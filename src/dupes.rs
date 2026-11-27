@@ -1,7 +1,7 @@
 //! Duplicate files (REQ-DSCR-005): regular files whose contents are
 //! byte-identical, grouped, with the bytes a clean-up would reclaim.
 //!
-//! `disky dupes` and the GUI's Duplicates screen read the same [`dupes`]
+//! `disker dupes` and the GUI's Duplicates screen read the same [`dupes`]
 //! call. It narrows the snapshot in four steps, cheapest first:
 //!
 //! 1. **Size** — one query keeps files whose logical size occurs at least
@@ -69,7 +69,7 @@ impl DupeGroup {
     }
 }
 
-/// What `disky dupes` prints and the Duplicates screen renders.
+/// What `disker dupes` prints and the Duplicates screen renders.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct DupesView {
     /// Smallest logical size compared.

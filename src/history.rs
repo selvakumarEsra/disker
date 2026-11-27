@@ -1,8 +1,8 @@
 //! Clean-history log (REQ-DCLEAN-034).
 //!
-//! Every applied clean appends one [`Entry`] to `history.json` in disky's
-//! data directory, next to the snapshots. `disky history` lists the log and
-//! `disky restore <id>` moves an entry's trashed items back.
+//! Every applied clean appends one [`Entry`] to `history.json` in disker's
+//! data directory, next to the snapshots. `disker history` lists the log and
+//! `disker restore <id>` moves an entry's trashed items back.
 //!
 //! The log is shared by every writer (CLI, GUI), so each read-modify-write
 //! holds an exclusive advisory lock on a sibling `history.lock` and swaps
@@ -15,7 +15,7 @@ use serde::{Deserialize, Serialize};
 use std::fs;
 use std::path::{Path, PathBuf};
 
-use crate::exit::{DiskyError, ExitCode};
+use crate::exit::{DiskerError, ExitCode};
 
 /// On-disk format version of `history.json`.
 pub const LOG_VERSION: u32 = 1;
@@ -24,7 +24,7 @@ pub const LOG_VERSION: u32 = 1;
 pub const TITLE_SMART_CLEAN: &str = "Smart Clean";
 /// Title of a clean whose review the assistant opened (REQ-DCLEAN-009.A5).
 pub const TITLE_ASSISTANT: &str = "Assistant cleanup";
-/// Title of a `disky cleanup --apply` run, and of entries written before
+/// Title of a `disker cleanup --apply` run, and of entries written before
 /// titles existed.
 pub const TITLE_CLI: &str = "Cleanup";
 /// Title of a clean run from the Large files screen (REQ-DSCR-013.A4).
@@ -127,7 +127,7 @@ struct LogFile {
 }
 
 /// `<data dir>/history.json`. The `.json` extension keeps it out of
-/// `@latest` and `disky list`, which only look at `*.db`.
+/// `@latest` and `disker list`, which only look at `*.db`.
 pub fn log_path() -> PathBuf {
     crate::snapshots::snapshot_dir().join("history.json")
 }
@@ -173,14 +173,14 @@ pub fn append(path: &Path, mut entry: Entry) -> Result<Entry> {
 pub fn restore(path: &Path, id: &str) -> Result<RestoreReport> {
     with_lock(path, |entries| {
         let entry = entries.iter_mut().find(|e| e.id == id).ok_or_else(|| {
-            DiskyError::new(
+            DiskerError::new(
                 ExitCode::NotFound,
                 "history entry not found",
-                format!("no history entry '{id}' (see `disky history`)"),
+                format!("no history entry '{id}' (see `disker history`)"),
             )
         })?;
         if entry.mode == Mode::Delete {
-            return Err(DiskyError::new(
+            return Err(DiskerError::new(
                 ExitCode::Generic,
                 "not restorable",
                 format!("entry {id} was a permanent delete and cannot be restored"),
@@ -188,7 +188,7 @@ pub fn restore(path: &Path, id: &str) -> Result<RestoreReport> {
             .into());
         }
         if let Some(at) = &entry.restored_at {
-            return Err(DiskyError::new(
+            return Err(DiskerError::new(
                 ExitCode::Generic,
                 "already restored",
                 format!("entry {id} already restored at {at}"),

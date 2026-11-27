@@ -1,6 +1,6 @@
 //! The OS Trash (REQ-XPLAT-006): where a reversible clean puts each path,
 //! in the layout the OS's own file manager reads, so the user can restore
-//! it from there as well as from `disky restore`.
+//! it from there as well as from `disker restore`.
 //!
 //! - macOS: `~/.Trash/<name>-<stamp>`.
 //! - Linux: the freedesktop.org Trash, `files/<name>` plus
@@ -86,7 +86,7 @@ impl Bin {
         let name = src
             .file_name()
             .map(|s| s.to_string_lossy().into_owned())
-            .unwrap_or_else(|| "disky-trashed".into());
+            .unwrap_or_else(|| "disker-trashed".into());
         match self {
             Bin::Flat(_) => {
                 let now = now_since_epoch();
@@ -286,11 +286,11 @@ fn recycle_dir_for(dir: &Path, src: &Path) -> PathBuf {
 /// (macOS), `$XDG_DATA_HOME/Trash` or `~/.local/share/Trash` (Linux),
 /// `<system drive>/$Recycle.Bin/<SID>` (Windows).
 ///
-/// `DISKY_TRASH_ROOT`, when set, replaces it (same layout). The CLI tests
+/// `DISKER_TRASH_ROOT`, when set, replaces it (same layout). The CLI tests
 /// use it on Windows, where the Recycle Bin is on the drive rather than in
 /// the temp home, so no test ever touches the real one.
 pub fn user_root() -> Result<PathBuf> {
-    if let Some(d) = std::env::var_os("DISKY_TRASH_ROOT").filter(|v| !v.is_empty()) {
+    if let Some(d) = std::env::var_os("DISKER_TRASH_ROOT").filter(|v| !v.is_empty()) {
         return Ok(PathBuf::from(d));
     }
     let home =

@@ -30,7 +30,7 @@ function snapshotPrefs(): Preferences {
 
 /**
  * A stand-in for the engine's one preferences store: `get_prefs` reads it,
- * `set_prefs` writes one key (as `disky prefs --set` does) and every view
+ * `set_prefs` writes one key (as `disker prefs --set` does) and every view
  * carries it, so the GUI can only ever show what the store holds.
  */
 function fakeEngine(initial: Preferences, picked: string | null = "~/Movies/Edits") {

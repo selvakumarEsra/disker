@@ -5,7 +5,7 @@
  * Source for every value: specs/disk-cleanup/snapshot.html (app shell). */
 :root {
   /* ── Type ───────────────────────────────────────────────────── */
-  --fs-titlebar: var(--fs-xs);        /* title bar "disky" — 12px */
+  --fs-titlebar: var(--fs-xs);        /* title bar "disker" — 12px */
   --fs-brand: 22px;                   /* sidebar brand word */
   --tracking-brand: -0.01em;
   --fs-nav: 14px;                     /* navigation entries */

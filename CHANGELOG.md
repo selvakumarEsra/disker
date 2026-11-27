@@ -1,11 +1,25 @@
 # Changelog
 
-All notable changes to disky will be documented in this file.
+All notable changes to disker will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+### Changed
+- **Renamed to disker** (REQ-RENAME-001): the command, the library crate and
+  the desktop app are `disker`. The environment variables are
+  `DISKER_FORMAT`, `DISKER_SNAPSHOT` and `DISKER_CONFIG_PATH`, the config file
+  is `<config dir>/disker/config.toml`, the ignore file is `.diskerignore`,
+  and error `type` URIs start with `https://disker.dev/errors/`. Rename existing ignore
+  files to `.diskerignore` and update scripts to call `disker`.
+
+### Added
+- Data from before the rename carries over (REQ-RENAME-002): on first use,
+  the old data folder (snapshots, `prefs.json`, `history.json`) and config
+  folder are renamed to `disker`. An existing `disker` folder is never
+  replaced, and a failed rename leaves both folders as they were.
 
 ## [0.12.0] — 2026-11-27
 
@@ -16,7 +30,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   and safety rules. Paths are stored `/`-separated on every OS. Each OS has its
   own cleanup locations, data directory, disk-space probe, file locks and
   open/reveal. Cleanup moves files to the freedesktop Trash on Linux and the
-  Recycle Bin on Windows, and `disky restore` brings them back.
+  Recycle Bin on Windows, and `disker restore` brings them back.
 - CI runs fmt, clippy and the tests on macOS, Ubuntu and Windows, and builds
   the desktop bundles for Linux (.deb, AppImage) and Windows (NSIS).
 - Releases add `x86_64` and `aarch64` Linux tarballs and an `x86_64` Windows zip.
@@ -25,12 +39,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   commands back each screen: `map`, `large`, `dupes`, `trash`, `agents`,
   `suggest`.
 - Preferences store (REQ-DSCR-001): one `prefs.json` in the data dir, shared
-  by the CLI and the desktop GUI. `disky prefs [--format json]` prints every
-  preference (`kind:"prefs"`); `disky prefs --set <key>=<value>` (repeatable,
+  by the CLI and the desktop GUI. `disker prefs [--format json]` prints every
+  preference (`kind:"prefs"`); `disker prefs --set <key>=<value>` (repeatable,
   all-or-nothing) changes them. Unknown keys and invalid values exit 2 and
   write nothing; a malformed file is an error and is never replaced. Writes
   hold `flock` on `prefs.lock` and swap the file in atomically.
-- `disky cleanup` and the GUI honour the store (REQ-DSCR-002): hits inside an
+- `disker cleanup` and the GUI honour the store (REQ-DSCR-002): hits inside an
   excluded folder (`~` expanded, matched on whole path components) are
   dropped, and with `skip_recently_used` on — the default — so is any hit
   whose newest mtime is within 30 days. A missing excluded folder stays
@@ -44,20 +58,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   (id, timestamp, mode, categories, bytes, and per item the original path,
   Trash path and status) to `history.json` in the data dir. Writes hold an
   exclusive `flock` and swap the file in atomically.
-- `disky history` lists entries newest first (`kind:"history"`).
-- `disky restore <id>` moves trashed items back. It never overwrites:
+- `disker history` lists entries newest first (`kind:"history"`).
+- `disker restore <id>` moves trashed items back. It never overwrites:
   occupied paths are conflicts, and items gone from the Trash are reported
   as missing. Re-running retries the rest. Delete-mode and fully restored
   entries are refused.
-- `cleanup` envelope gains `history_id`. `disky schema` documents
+- `cleanup` envelope gains `history_id`. `disker schema` documents
   `history`, `restore`, `HistoryEntry`, `HistoryItem` and `RestoreReport`.
-- GUI data contract (REQ-DCLEAN-027/028/029/001): `disky::contract` builds the
+- GUI data contract (REQ-DCLEAN-027/028/029/001): `disker::contract` builds the
   desktop GUI's `CleanupView` (disk usage, goal, snapshot age and staleness,
   preferences, categories with items), `ScanProgress` and `CleanResult` in the
-  engine. `disky::disk::disk_usage` reports volume capacity and free space
+  engine. `disker::disk::disk_usage` reports volume capacity and free space
   via `statvfs`, as `df` does. `scan::run_observed` streams scan progress.
 - Every cleanup category carries a `label` and `description`, listed by
-  `disky schema`.
+  `disker schema`.
 - `CleanupHit` and `CategorySummary` gain `physical_bytes`; the `cleanup`
   envelope gains `total_physical_bytes`.
 - Tauri commands `load_cleanup_view`, `scan`, `stop_scan` and `clean`.
@@ -71,9 +85,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - The minimum supported Rust version is 1.85.1, which the bundled DuckDB
   already required. On Windows, building needs the Visual Studio 2022 C++
   build tools.
-- **Behaviour change:** `disky cleanup` now leaves out anything modified in
+- **Behaviour change:** `disker cleanup` now leaves out anything modified in
   the last 30 days by default (`skip_recently_used`). Run
-  `disky prefs --set skip_recently_used=false` for the previous behaviour.
+  `disker prefs --set skip_recently_used=false` for the previous behaviour.
 - `cleanup::apply(hits, mode, log)` now returns `ApplyOutcome { handled, failed, entry }`.
   `failed` lists skipped paths with a reason (`missing`, `already in Trash`,
   `move to Trash failed`).
@@ -83,18 +97,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.10.0] — 2026-05-27
 
 ### Removed (BREAKING)
-- `disky-mcp` binary deleted. 925 LOC, single-file `src/bin/disky-mcp.rs`. CLI
+- `disker-mcp` binary deleted. 925 LOC, single-file `src/bin/disker-mcp.rs`. CLI
   is now the only surface. Rationale: only real consumer (Claude Code) shells
   out, and every MCP tool just wrapped the matching CLI subcommand with the
   same JSON envelope — pure duplication for zero new users. Validated by
   4-round grill on 2026-05-27. Hosts that cannot shell out (Claude Desktop /
   Cursor / Zed) are unsupported until earn-back: see AGENTS.md "Single
-  surface" section. Resurrection: `git log --all --diff-filter=D -- src/bin/disky-mcp.rs`.
-- `[[bin]] disky-mcp` removed from `Cargo.toml`. `cargo install --path .`
-  now installs only the `disky` binary.
+  surface" section. Resurrection: `git log --all --diff-filter=D -- src/bin/disker-mcp.rs`.
+- `[[bin]] disker-mcp` removed from `Cargo.toml`. `cargo install --path .`
+  now installs only the `disker` binary.
 - Removed punch-list items pre-empted by this decision: MCP `resources/list`,
   MCP `resources/read`, MCP `prompts/list`, MCP progress notifications on
-  scan/cleanup, `disky web` FastHTML server, `disky install-mcp` subcommand,
+  scan/cleanup, `disker web` FastHTML server, `disker install-mcp` subcommand,
   `tests/mcp_protocol.rs` integration suite. None of them shipped — the plan
   was scoped out before implementation.
 
@@ -105,12 +119,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   surface — CLI only". Earn-back criteria preserved.
 
 ### Notes
-- Local profile installs (`disky-mcp` symlinks in `~/.claude-pessoal/` and
-  `~/.claude-mukutu/`) should be removed manually:
-  ```
-  # Edit `~/.claude-pessoal/.claude.json` + `~/.claude-mukutu/.claude.json`,
-  # delete the `mcpServers.disky` entry.
-  ```
+- Local installs of `disker-mcp` should be removed manually: delete the
+  `mcpServers.disker` entry from your Claude Code config.
 
 ## [0.10.1] — 2026-05-27
 
@@ -120,7 +130,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   Cuts the 1-2 GB `target/` per-project tax by sharing compiled artifacts
   across all Rust repos. Verification commands + cache-size tuning
   included. Followup from v0.10.0 grill (2026-05-27).
-- `claude-skill/disky/SKILL.md` v2 — rewrites the `/disky` skill as a
+- `claude-skill/disker/SKILL.md` v2 — rewrites the `/disker` skill as a
   guided 4-stage wizard (triage → propose → confirm → apply), all driven
   by `AskUserQuestion`. Replaces the prior one-shot HTML report. Defaults
   every destructive op to `--reversible` (Trash). HTML report becomes
@@ -133,14 +143,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   build_release_inc 13s are above advisory budgets — pre-existing drift
   that the prior baseline (commit `1e441d3`) was masking. Tightening is
   a follow-up phase.
-- `scripts/collect-metrics.sh` no longer measures `target/release/disky-mcp`
+- `scripts/collect-metrics.sh` no longer measures `target/release/disker-mcp`
   (binary removed in v0.10.0). `binary_size_bytes` envelope is now
-  `{"disky": N}` only.
+  `{"disker": N}` only.
 
 ### Fixed
 - `CONTRIBUTING.md` performance/metrics rule no longer references the
-  removed `disky-mcp` binary; rule §5 now mentions only the single
-  `disky` bin.
+  removed `disker-mcp` binary; rule §5 now mentions only the single
+  `disker` bin.
 
 ## [0.11.0] — 2026-05-27
 
@@ -150,17 +160,17 @@ dedicated `feat(...): ... (P<N>)` commit; see those for design details.
 
 ### Added
 - **P4 · Cleanup perf** (`7c5c34d`) — grouped query w/ TEMP table for
-  target dirs. `disky cleanup` now runs **79s → <1s** on a 1M-row
+  target dirs. `disker cleanup` now runs **79s → <1s** on a 1M-row
   synthetic snapshot. Integration test `cleanup_is_fast_on_large_snapshot`.
-- **P6 · N-snapshot growth** (`003cafe`) — `disky growth --over-n N`
+- **P6 · N-snapshot growth** (`003cafe`) — `disker growth --over-n N`
   flag (default 5). New envelope `kind="growth_n"` with per-directory
   OLS slope, R², projected fill date, sample timestamps. Schema bumped.
 - **P7 · Pattern classifier** (`7764eb8`) — `src/pattern.rs` module
   classifies size-over-time series into LogShaped / Burst / Stable /
   Declining / Unknown. Pure heuristic, no stats crate. 10 unit tests.
-  `disky churn --classify` flag wiring deferred to v0.11.1.
-- **P5 · `.diskyignore` loader** (`5f43879`) — `src/ignore.rs` module
-  with `load_diskyignore_chain(scan_root)`, gitignore-subset format
+  `disker churn --classify` flag wiring deferred to v0.11.1.
+- **P5 · `.diskerignore` loader** (`5f43879`) — `src/ignore.rs` module
+  with `load_diskerignore_chain(scan_root)`, gitignore-subset format
   (substring patterns, no globs in v1), default skip list helper.
   5 unit tests. Scan-path wiring deferred to v0.11.1.
 
@@ -172,8 +182,6 @@ dedicated `feat(...): ... (P<N>)` commit; see those for design details.
 - P5 sub-agent added a Cargo.toml dependency despite the "no new deps"
   contract — **rejected** during merge. Module is std-only.
 - SLA breach: P5 slipped 0.01m past its 10m budget. Accepted (noise).
-- Full coordination pattern memoized in
-  `~/.claude-pessoal/projects/-Users-billiboss-src-disky/memory/feedback_release_coordination.md`.
 
 ### Changed
 - `Cargo.toml` version bumped 0.10.1 → 0.11.0.
@@ -182,7 +190,7 @@ dedicated `feat(...): ... (P<N>)` commit; see those for design details.
 
 
 ### Added
-- `disky cleanup` (CLI + MCP) now adds `summary: [CategorySummary]` and
+- `disker cleanup` (CLI + MCP) now adds `summary: [CategorySummary]` and
   `total_bytes` to the JSON envelope, aggregating hits across paths per
   category. Text mode prints a second table beneath the per-path list
   showing TOTAL / FILES / PATHS per category and the grand total. Lets
@@ -194,18 +202,18 @@ dedicated `feat(...): ... (P<N>)` commit; see those for design details.
   with overlapping basenames.
 - TUI header now shows a red `PARTIAL` badge when the loaded snapshot's
   last scan was cancelled. Surfaces F12 state to humans, matching the
-  `partial: true` flag exposed to agents in `disky stats --format json`.
-- `disky diff <a> <b>` (+ `disky_diff` MCP tool): compares two snapshots
+  `partial: true` flag exposed to agents in `disker stats --format json`.
+- `disker diff <a> <b>` (+ `disker_diff` MCP tool): compares two snapshots
   and reports added / removed / grew / shrank files ordered by absolute
   delta. Uses DuckDB `ATTACH` for a single-statement FULL OUTER JOIN.
   New `query::diff` + `render::diff` + `DiffRow` record. Lets agents
   answer "what changed since the last scan?" without bespoke SQL.
-- `disky scan --emit-top N --emit-dirs N --emit-ext N --emit-stats` bundles
+- `disker scan --emit-top N --emit-dirs N --emit-ext N --emit-stats` bundles
   the query results into a `scan_bundle` envelope so agents skip the usual
-  scan→stats→top→dirs round-trip. MCP `disky_scan` accepts the same
+  scan→stats→top→dirs round-trip. MCP `disker_scan` accepts the same
   `emit_top`/`emit_dirs`/`emit_ext` integers and now always returns a
   `scan_bundle` (with `complete` from the cancellable scan outcome).
-- `disky cleanup --apply --reversible` (and `disky_cleanup` MCP arg
+- `disker cleanup --apply --reversible` (and `disker_cleanup` MCP arg
   `reversible: true`) moves paths to `~/.Trash/<name>-<unix-ts>` instead
   of `rm -rf`-ing them, so a misfire can be undone from Finder. Default
   `--apply` without `--reversible` keeps the permanent-delete behaviour.
@@ -214,7 +222,7 @@ dedicated `feat(...): ... (P<N>)` commit; see those for design details.
 - Integration test covers the trash path (synthesises a `node_modules`,
   asserts source gone, then sweeps the matching trash entry).
 - `Stats` now carries scan provenance: `scan_root`, `scanned_at` (RFC 3339),
-  `scan_duration_s`. `disky stats` text mode prints them under the totals;
+  `scan_duration_s`. `disker stats` text mode prints them under the totals;
   JSON mode adds them as optional fields. Lets agents tell whether a query
   is hitting a fresh snapshot or a week-old one.
 - `scan_meta.ended_at` (BIGINT) stored on every scan; `ScanMeta::duration_secs`
@@ -228,15 +236,15 @@ dedicated `feat(...): ... (P<N>)` commit; see those for design details.
 ## [0.6.0] - 2026-05-17
 
 ### Added
-- Cancellable scan: `Ctrl-C` during `disky scan` now drains the in-flight
+- Cancellable scan: `Ctrl-C` during `disker scan` now drains the in-flight
   batch, marks the snapshot partial, and exits with status `5`
   (`partial-scan`). The DB on disk is still queryable.
 - `scan_meta` table per snapshot — `root, started_at, completed, entries,
-  bytes`. `disky stats` surfaces `partial: true` (text + JSON) when the
+  bytes`. `disker stats` surfaces `partial: true` (text + JSON) when the
   last scan was cancelled.
 - `scan::ScanOutcome { complete, entries, bytes }` returned from
   `scan::run` and `scan::run_cancellable`.
-- `exit::classify` preserves a `DiskyError` if the underlying error
+- `exit::classify` preserves a `DiskerError` if the underlying error
   already is one (lets call sites raise specific codes without going
   through string heuristics).
 
@@ -246,52 +254,52 @@ dedicated `feat(...): ... (P<N>)` commit; see those for design details.
 ## [0.5.0] - 2026-05-17
 
 ### Added
-- `disky cleanup` — find well-known disk hoggers (`node_modules`, `target`,
+- `disker cleanup` — find well-known disk hoggers (`node_modules`, `target`,
   `__pycache__`, `.next`, `dist`, `build`, `.venv`/`venv`, `.gradle`,
   `.pytest_cache`) in the snapshot, render category/size/files/path. Defaults
   to dry-run; `--apply` actually removes the listed paths. `--target` filters
   to specific categories.
-- `disky schema` — emit a JSON descriptor of every command, record shape,
+- `disker schema` — emit a JSON descriptor of every command, record shape,
   error code, and snapshot-ref form. Hand-written, no `schemars` dep.
-- MCP tools `disky_cleanup` and `disky_schema` mirror the CLI.
+- MCP tools `disker_cleanup` and `disker_schema` mirror the CLI.
 
 ## [0.4.0] - 2026-05-17
 
 ### Added
-- `disky query "<sql>"` — run arbitrary SQL against a snapshot, rendered as
+- `disker query "<sql>"` — run arbitrary SQL against a snapshot, rendered as
   text table, JSON envelope, or NDJSON. Heterogeneous columns map to native
   JSON types; `HugeInt` is stringified to preserve precision. `--limit`
   caps rows (default 1000).
 - Snapshot ID handles: every CLI subcommand and MCP tool now accepts
   `--snapshot @latest | <id> | <path>` via `snapshots::resolve`. IDs are the
   file stem (e.g. `2026-05-15_11-56`) and resolve against the data dir.
-- `disky_query` MCP tool mirroring the CLI surface.
-- `disky list` (text + JSON) now prints the snapshot ID alongside the path.
+- `disker_query` MCP tool mirroring the CLI surface.
+- `disker list` (text + JSON) now prints the snapshot ID alongside the path.
 
 ### Changed
 - CLI subcommands replace `--db <path>` with `--snapshot <ref>`. The legacy
-  `disky.db` literal default is gone; queries default to `@latest`.
-- `disky scan --db <path>` keeps the old flag for explicit destinations,
+  `disker.db` literal default is gone; queries default to `@latest`.
+- `disker scan --db <path>` keeps the old flag for explicit destinations,
   defaults to an auto-named file in the data dir.
 - Bad snapshot IDs now exit with status `4 not-found` (verified end-to-end).
 
 ## [0.3.0] - 2026-05-17
 
 ### Added
-- `disky-mcp` binary: minimal stdio MCP server (JSON-RPC 2.0) exposing the
-  query layer as typed tools (`disky_scan`, `disky_top`, `disky_dirs`,
-  `disky_ext`, `disky_find`, `disky_stats`, `disky_list_snapshots`). No
+- `disker-mcp` binary: minimal stdio MCP server (JSON-RPC 2.0) exposing the
+  query layer as typed tools (`disker_scan`, `disker_top`, `disker_dirs`,
+  `disker_ext`, `disker_find`, `disker_stats`, `disker_list_snapshots`). No
   external SDK dep — handcrafted protocol covers `initialize`, `tools/list`,
   `tools/call`. Tool errors carry the RFC 9457 payload as `isError` content.
 - `[lib]` target — `db`, `exit`, `query`, `render`, `scan`, `snapshots`
-  modules now public via the `disky` crate so both binaries reuse the core.
+  modules now public via the `disker` crate so both binaries reuse the core.
 - NDJSON scan progress on stderr when stderr is not a TTY: `start`,
   `progress` (throttled 500ms), `done` events. Spinner keeps working
   interactively.
 
 ### Changed
-- `Cargo.toml` declares `[lib]` + two `[[bin]]` targets (`disky`, `disky-mcp`).
-- `main.rs`, `cli.rs`, `tui/mod.rs` switched from `crate::` to `disky::`
+- `Cargo.toml` declares `[lib]` + two `[[bin]]` targets (`disker`, `disker-mcp`).
+- `main.rs`, `cli.rs`, `tui/mod.rs` switched from `crate::` to `disker::`
   imports so the binary consumes the library.
 
 ## [0.2.0] - 2026-05-17
@@ -305,11 +313,11 @@ dedicated `feat(...): ... (P<N>)` commit; see those for design details.
 - Stable exit-code taxonomy (0/1/2/3/4/5/6) wired through `src/exit.rs` and
   documented in AGENTS.md.
 - RFC 9457 problem-details JSON errors on stderr in machine output modes,
-  with stable `type` URIs (`https://disky.dev/errors/<slug>`).
+  with stable `type` URIs (`https://disker.dev/errors/<slug>`).
 - `mtime` now surfaced in JSON as RFC 3339 UTC, sizes as raw `u64` bytes.
 
 ### Changed
-- `disky list --format json` emits `{path, bytes}` records (snapshot index).
+- `disker list --format json` emits `{path, bytes}` records (snapshot index).
 
 ### Removed
 - `src/display.rs` — superseded by `query` + `render` split.
@@ -318,7 +326,7 @@ dedicated `feat(...): ... (P<N>)` commit; see those for design details.
 
 ### Added
 - Full filesystem scan via `jwalk` with parallel traversal (`getattrlistbulk` path on macOS)
-- DuckDB embedded storage — persistent snapshots in `~/Library/Application Support/disky/`
+- DuckDB embedded storage — persistent snapshots in `~/Library/Application Support/disker/`
 - Interactive TUI (`ratatui`) — ncdu-style directory tree, size bars, keybindings
 - CLI subcommands: `scan`, `tui`, `top`, `dirs`, `ext`, `find`, `stats`, `list`
 - `memchr`-based extension extraction (zero alloc)

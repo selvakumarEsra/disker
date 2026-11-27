@@ -1,8 +1,8 @@
-/** Sidebar brand: the snapshot's logo mark plus the product name "disky" (REQ-DCLEAN-032.A2). */
+/** Sidebar brand: the snapshot's logo mark plus the product name "disker" (REQ-DCLEAN-032.A2). */
 export function Brand() {
   return (
     <div class="brand">
-      <svg class="brand-logo" viewBox="0 0 34 34" role="img" aria-label="disky logo">
+      <svg class="brand-logo" viewBox="0 0 34 34" role="img" aria-label="disker logo">
         <rect x="0" y="0" width="34" height="34" rx="11" fill="var(--color-text)" />
         <circle
           cx="17"
@@ -29,7 +29,7 @@ export function Brand() {
         />
         <circle cx="17" cy="17" r="2.6" fill="var(--color-bg)" />
       </svg>
-      <span class="brand-word">disky</span>
+      <span class="brand-word">disker</span>
     </div>
   );
 }

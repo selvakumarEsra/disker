@@ -32,7 +32,7 @@ impl ExitCode {
 /// Typed error surface. Wraps an underlying `anyhow::Error` plus a stable code
 /// so the agent can dispatch without string-matching messages.
 #[derive(Debug)]
-pub struct DiskyError {
+pub struct DiskerError {
     pub code: ExitCode,
     pub title: &'static str,
     pub detail: String,
@@ -51,10 +51,10 @@ fn fresh_instance() -> String {
         .duration_since(UNIX_EPOCH)
         .map(|d| (d.as_secs(), d.subsec_nanos()))
         .unwrap_or((0, 0));
-    format!("disky-{}-{:09}-{}", t.0, t.1, n)
+    format!("disker-{}-{:09}-{}", t.0, t.1, n)
 }
 
-impl DiskyError {
+impl DiskerError {
     pub fn new(code: ExitCode, title: &'static str, detail: impl Into<String>) -> Self {
         Self {
             code,
@@ -82,13 +82,13 @@ impl DiskyError {
     }
 }
 
-impl fmt::Display for DiskyError {
+impl fmt::Display for DiskerError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}: {}", self.title, self.detail)
     }
 }
 
-impl std::error::Error for DiskyError {}
+impl std::error::Error for DiskerError {}
 
 #[cfg(test)]
 #[allow(clippy::items_after_test_module)]
@@ -109,15 +109,15 @@ mod tests {
 
     #[test]
     fn retryable_flag_set_only_for_transient_codes() {
-        assert!(DiskyError::lock_held("x").retryable);
-        assert!(DiskyError::io("x").retryable);
-        assert!(!DiskyError::not_found("x").retryable);
-        assert!(!DiskyError::generic("x").retryable);
+        assert!(DiskerError::lock_held("x").retryable);
+        assert!(DiskerError::io("x").retryable);
+        assert!(!DiskerError::not_found("x").retryable);
+        assert!(!DiskerError::generic("x").retryable);
     }
 
     #[test]
-    fn classify_passes_through_existing_disky_error() {
-        let original = anyhow::Error::from(DiskyError::lock_held("held"));
+    fn classify_passes_through_existing_disker_error() {
+        let original = anyhow::Error::from(DiskerError::lock_held("held"));
         let classified = classify(original);
         assert_eq!(classified.code, ExitCode::LockHeld);
         assert!(classified.retryable);
@@ -151,27 +151,27 @@ mod tests {
 
     #[test]
     fn instance_is_unique_per_error() {
-        let a = DiskyError::generic("x");
-        let b = DiskyError::generic("y");
+        let a = DiskerError::generic("x");
+        let b = DiskerError::generic("y");
         assert_ne!(a.instance, b.instance);
-        assert!(a.instance.starts_with("disky-"));
+        assert!(a.instance.starts_with("disker-"));
     }
 
     #[test]
     fn display_includes_title_and_detail() {
-        let e = DiskyError::not_found("/missing.db");
+        let e = DiskerError::not_found("/missing.db");
         let s = format!("{}", e);
         assert!(s.contains("snapshot not found"));
         assert!(s.contains("/missing.db"));
     }
 }
 
-/// Classify an `anyhow::Error` into a `DiskyError`. Best-effort — falls back to
+/// Classify an `anyhow::Error` into a `DiskerError`. Best-effort — falls back to
 /// `Generic` so behaviour matches today, but specific underlying errors get
 /// mapped to stable codes.
-pub fn classify(err: anyhow::Error) -> DiskyError {
-    if err.downcast_ref::<DiskyError>().is_some() {
-        return err.downcast::<DiskyError>().unwrap();
+pub fn classify(err: anyhow::Error) -> DiskerError {
+    if err.downcast_ref::<DiskerError>().is_some() {
+        return err.downcast::<DiskerError>().unwrap();
     }
 
     let msg = format!("{:#}", err);
@@ -179,9 +179,9 @@ pub fn classify(err: anyhow::Error) -> DiskyError {
 
     if let Some(io) = err.downcast_ref::<std::io::Error>() {
         return match io.kind() {
-            std::io::ErrorKind::NotFound => DiskyError::not_found(msg),
-            std::io::ErrorKind::PermissionDenied => DiskyError::io(msg),
-            _ => DiskyError::io(msg),
+            std::io::ErrorKind::NotFound => DiskerError::not_found(msg),
+            std::io::ErrorKind::PermissionDenied => DiskerError::io(msg),
+            _ => DiskerError::io(msg),
         };
     }
 
@@ -189,16 +189,16 @@ pub fn classify(err: anyhow::Error) -> DiskyError {
         || lower.contains("database is locked")
         || lower.contains("conflicting lock")
     {
-        DiskyError::lock_held(msg)
+        DiskerError::lock_held(msg)
     } else if lower.contains("no such file") || lower.contains("not found") {
-        DiskyError::not_found(msg)
+        DiskerError::not_found(msg)
     } else if lower.contains("permission denied")
         || lower.contains("read-only file system")
         || lower.contains("cannot open file")
         || lower.contains("io error")
     {
-        DiskyError::io(msg)
+        DiskerError::io(msg)
     } else {
-        DiskyError::generic(msg)
+        DiskerError::generic(msg)
     }
 }

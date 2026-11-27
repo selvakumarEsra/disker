@@ -7,19 +7,19 @@
 # ]
 # ///
 """
-disky report renderer — single-file FastHTML + Monster UI.
+disker report renderer — single-file FastHTML + Monster UI.
 
-Reads JSON envelopes produced by the `/disky` Claude Code skill and emits
-a single self-contained HTML page styled with the disky Design Feel
+Reads JSON envelopes produced by the `/disker` Claude Code skill and emits
+a single self-contained HTML page styled with the disker Design Feel
 (paper/ink/rust/olive palette, Fraunces + Manrope, editorial brutalism).
 
 Usage:
-    uv run render.py /tmp/disky-skill-<unix>/ > /tmp/disky-report.html
+    uv run render.py /tmp/disker-skill-<unix>/ > /tmp/disker-report.html
 
 Or as a server (preview while editing):
-    uv run render.py /tmp/disky-skill-<unix>/ --serve
+    uv run render.py /tmp/disker-skill-<unix>/ --serve
 
-Input directory layout (one JSON file per disky command):
+Input directory layout (one JSON file per disker command):
     stats.json  top.json  dirs.json  ext.json
     churn24.json  churn7d.json  cleanup.json
     empty.json  old.json
@@ -34,7 +34,7 @@ from datetime import datetime, timezone
 from fasthtml.common import *  # noqa: F403
 from monsterui.all import *  # noqa: F403
 
-# ─── disky palette (THE authoritative tokens) ──────────────────────────────
+# ─── disker palette (THE authoritative tokens) ──────────────────────────────
 PALETTE = {
     "paper":   "#F5F1E8",
     "ink":     "#14110F",
@@ -119,7 +119,7 @@ document.querySelectorAll('[data-count]').forEach(el => {
 # ─── data helpers ──────────────────────────────────────────────────────────
 
 def load_envelope(p: Path, key: str = "records"):
-    """Load a disky JSON envelope; return its `records` list (or `record`)."""
+    """Load a disker JSON envelope; return its `records` list (or `record`)."""
     if not p.exists():
         return None
     data = json.loads(p.read_text())
@@ -242,7 +242,7 @@ def render_cleanup(data: dict | None):
     actions = []
     for cat_entry in summary[:6]:
         cat = cat_entry["category"]
-        cmd = (f"disky cleanup --snapshot @latest --target {cat} "
+        cmd = (f"disker cleanup --snapshot @latest --target {cat} "
                f"--apply --reversible")
         actions.append(Pre(
             f"# free {human_bytes(cat_entry['bytes'])} ({cat_entry['paths']} dirs of {cat})\n{cmd}",
@@ -289,7 +289,7 @@ def build_page(data_dir: Path) -> FT:
     head = (
         Meta(charset="utf-8"),
         Meta(name="viewport", content="width=device-width,initial-scale=1"),
-        Title("disky — disk-space report"),
+        Title("disker — disk-space report"),
         Link(rel="preconnect", href="https://fonts.gstatic.com", crossorigin=True),
         Link(rel="stylesheet",
              href=("https://fonts.googleapis.com/css2?"
@@ -307,7 +307,7 @@ def build_page(data_dir: Path) -> FT:
         Header(
             Div(
                 Div(
-                    Span("disky · /disky report", cls="label"),
+                    Span("disker · /disker report", cls="label"),
                     Span(when, cls="label"),
                     cls="flex items-center justify-between mb-2",
                 ),
@@ -366,13 +366,13 @@ def build_page(data_dir: Path) -> FT:
                 section_header("04", "agent flow"),
                 Pre(
                     "# find log generators in the last 24h\n"
-                    "disky churn --over 24h --format json | "
-                    "disky filter --where \"churn_score > 0.5\"\n\n"
+                    "disker churn --over 24h --format json | "
+                    "disker filter --where \"churn_score > 0.5\"\n\n"
                     "# what grew biggest this week?\n"
-                    "disky growth --over 7d --format json | "
-                    "disky filter --where \"delta_bytes > 100MB\"\n\n"
+                    "disker growth --over 7d --format json | "
+                    "disker filter --where \"delta_bytes > 100MB\"\n\n"
                     "# safely free disk\n"
-                    "disky cleanup --target target,node_modules --apply --reversible",
+                    "disker cleanup --target target,node_modules --apply --reversible",
                     cls="codeblk",
                 ),
             ),

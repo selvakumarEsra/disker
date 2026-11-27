@@ -30,20 +30,20 @@ function navButton(label: string) {
   return screen.getByRole("button", { name: new RegExp(`^${label}`) });
 }
 
-function brandAndTitleBarReadDisky() {
+function brandAndTitleBarReadDisker() {
   renderApp();
-  expect(screen.getByTestId("titlebar")).toHaveTextContent(/^disky$/);
-  expect(document.querySelector(".brand-word")).toHaveTextContent(/^disky$/);
-  expect(screen.getByRole("img", { name: "disky logo" })).toBeInTheDocument();
+  expect(screen.getByTestId("titlebar")).toHaveTextContent(/^disker$/);
+  expect(document.querySelector(".brand-word")).toHaveTextContent(/^disker$/);
+  expect(screen.getByRole("img", { name: "disker logo" })).toBeInTheDocument();
   expect(document.body.innerHTML).not.toMatch(/diskee/i);
 }
 
-function windowTitleIsDisky() {
+function windowTitleIsDisker() {
   const html = readFileSync(guiFile("index.html"), "utf8");
-  expect(html).toMatch(/<title>disky<\/title>/);
+  expect(html).toMatch(/<title>disker<\/title>/);
   const conf = JSON.parse(readFileSync(guiFile("src-tauri/tauri.conf.json"), "utf8"));
-  expect(conf.productName).toBe("disky");
-  expect(conf.app.windows[0].title).toBe("disky");
+  expect(conf.productName).toBe("disker");
+  expect(conf.app.windows[0].title).toBe("disker");
   expect(JSON.stringify(conf)).not.toMatch(/diskee/i);
 }
 
@@ -146,8 +146,8 @@ describe("app shell", () => {
   });
   afterEach(cleanup);
 
-  it("brand and title bar read disky, never Diskee (REQ-DCLEAN-032.A2)", brandAndTitleBarReadDisky);
-  it("window title is disky (REQ-DCLEAN-032.A2)", windowTitleIsDisky);
+  it("brand and title bar read disker, never Diskee (REQ-DCLEAN-032.A2)", brandAndTitleBarReadDisker);
+  it("window title is disker (REQ-DCLEAN-032.A2)", windowTitleIsDisker);
   it("every sidebar entry renders its real screen, no placeholder (REQ-DSCR-017.A3)", everyNavRouteRendersARealScreen);
   it("sidebar shows seven entries and the assistant badge (REQ-DCLEAN-032)", sidebarShowsSevenEntriesAndAssistantBadge);
   it("meter shows fixture free space and goal (REQ-DCLEAN-032)", meterShowsFixtureFreeSpaceAndGoal);

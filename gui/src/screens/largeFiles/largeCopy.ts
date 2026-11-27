@@ -1,6 +1,6 @@
 /**
  * Large files copy (REQ-DSCR-013), from the snapshot's Large files markup.
- * Every size and date is an engine figure (`disky large`); this module only
+ * Every size and date is an engine figure (`disker large`); this module only
  * words and formats them, and adds up the engine sizes of listed rows.
  */
 import type { LargeFile, LargeFilter } from "../../lib/contract";

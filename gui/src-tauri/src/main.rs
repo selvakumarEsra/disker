@@ -1,30 +1,30 @@
-//! disky desktop GUI — Tauri backend.
+//! disker desktop GUI — Tauri backend.
 //!
-//! The backend is a thin client of the `disky` library crate (REQ-DCLEAN-001):
-//! each command delegates to `disky::*` and never reimplements file walking,
+//! The backend is a thin client of the `disker` library crate (REQ-DCLEAN-001):
+//! each command delegates to `disker::*` and never reimplements file walking,
 //! size summing or deletion. Each has a CLI equivalent (REQ-DCLEAN-001.A1):
 //!
 //! | Command             | CLI                                              |
 //! |---------------------|--------------------------------------------------|
-//! | `load_cleanup_view` | `disky cleanup --snapshot <ref> --format json`   |
-//! | `scan`              | `disky scan <root>`                              |
-//! | `stop_scan`         | Ctrl-C during `disky scan`                       |
-//! | `clean`             | `disky cleanup --apply [--reversible]`           |
-//! | `restore`           | `disky restore <history_id>`                     |
+//! | `load_cleanup_view` | `disker cleanup --snapshot <ref> --format json`   |
+//! | `scan`              | `disker scan <root>`                              |
+//! | `stop_scan`         | Ctrl-C during `disker scan`                       |
+//! | `clean`             | `disker cleanup --apply [--reversible]`           |
+//! | `restore`           | `disker restore <history_id>`                     |
 //! | `open_full_disk_access` | `open "<contract::FULL_DISK_ACCESS_URL>"`    |
-//! | `get_prefs`         | `disky prefs --format json`                      |
-//! | `set_prefs`         | `disky prefs --set <key>=<value>`                |
+//! | `get_prefs`         | `disker prefs --format json`                      |
+//! | `set_prefs`         | `disker prefs --set <key>=<value>`                |
 //! | `pick_folder`       | (native picker only; the path is then saved with `set_prefs`) |
-//! | `list_history`      | `disky history --format json`                    |
-//! | `load_map`          | `disky map [<path>] --format json`               |
+//! | `list_history`      | `disker history --format json`                    |
+//! | `load_map`          | `disker map [<path>] --format json`               |
 //! | `reveal_in_finder`  | `open -R <path>` (a path `load_map` listed)      |
-//! | `load_large`        | `disky large [--filter …] --format json`         |
-//! | `trash_large`       | `disky trash <path>... --title "Large files"`    |
-//! | `load_dupes`        | `disky dupes --format json`                      |
-//! | `trash_dupes`       | `disky trash <path>... --title "Duplicates"`     |
-//! | `load_assistant`    | `disky suggest` + `disky agents` + `disky prefs` |
+//! | `load_large`        | `disker large [--filter …] --format json`         |
+//! | `trash_large`       | `disker trash <path>... --title "Large files"`    |
+//! | `load_dupes`        | `disker dupes --format json`                      |
+//! | `trash_dupes`       | `disker trash <path>... --title "Duplicates"`     |
+//! | `load_assistant`    | `disker suggest` + `disker agents` + `disker prefs` |
 //!
-//! Preferences live in the engine's one store (`disky::prefs`): every view
+//! Preferences live in the engine's one store (`disker::prefs`): every view
 //! reads its goal and toggles from it, and Settings writes it through
 //! `set_prefs`, so the CLI and the GUI never hold copies (REQ-DSCR-001.A2).
 //!
@@ -33,7 +33,7 @@
 //! scheduled background scans and posts the below-goal notification. It never
 //! cleans or trashes anything.
 //!
-//! Errors reach the GUI as `contract::EngineError`, typed by disky's
+//! Errors reach the GUI as `contract::EngineError`, typed by disker's
 //! exit-code slug (REQ-DCLEAN-018.A1).
 //!
 //! `scripts/lint-boundary.mjs` enforces the boundary on this file.
@@ -66,13 +66,13 @@ mod cache;
 mod checks;
 mod scheduler;
 
-use disky::cleanup::CleanupHit;
-use disky::contract::{
+use disker::cleanup::CleanupHit;
+use disker::contract::{
     self, AssistantView, CleanResult, CleanupView, DupesView, EngineError, HistoryView,
     LargeFilter, LargeView, MapView, RestoreResult, TrashResult,
 };
-use disky::prefs::{self, Prefs};
-use disky::{history, scan as engine_scan, snapshots};
+use disker::prefs::{self, Prefs};
+use disker::{history, scan as engine_scan, snapshots};
 use tauri::{AppHandle, Emitter, Manager};
 use tauri_plugin_dialog::DialogExt;
 use tauri_plugin_notification::NotificationExt;
@@ -218,13 +218,13 @@ async fn load_cleanup_view(app: AppHandle, snapshot: Option<String>) -> CmdResul
     .await
 }
 
-/// Every preference. CLI: `disky prefs --format json`.
+/// Every preference. CLI: `disker prefs --format json`.
 #[tauri::command]
 async fn get_prefs() -> CmdResult<Prefs> {
     blocking(read_prefs).await
 }
 
-/// Set one preference and return the store as saved. CLI: `disky prefs
+/// Set one preference and return the store as saved. CLI: `disker prefs
 /// --set <key>=<value>`. A bad key or value is a `usage` error and nothing
 /// is written (REQ-DSCR-001.A1).
 #[tauri::command]
@@ -342,7 +342,7 @@ async fn restore(app: AppHandle, history_id: String) -> CmdResult<RestoreResult>
 }
 
 /// The History screen's rows (REQ-DSCR-015): the log newest first, each with
-/// its detail and state, and the total cleared. CLI: `disky history`.
+/// its detail and state, and the total cleared. CLI: `disker history`.
 #[tauri::command]
 async fn list_history() -> CmdResult<HistoryView> {
     blocking(|| contract::history_view_now(&history::log_path())).await
@@ -350,7 +350,7 @@ async fn list_history() -> CmdResult<HistoryView> {
 
 /// The Space map of `path` (default: the scan root) in the latest snapshot
 /// (REQ-DSCR-003, REQ-DSCR-012); null when no snapshot exists yet. CLI:
-/// `disky map [<path>] --format json`.
+/// `disker map [<path>] --format json`.
 #[tauri::command]
 async fn load_map(app: AppHandle, path: Option<String>) -> CmdResult<Option<MapView>> {
     blocking(move || {
@@ -361,7 +361,7 @@ async fn load_map(app: AppHandle, path: Option<String>) -> CmdResult<Option<MapV
         // The screen draws at most MAX_TILES blocks; the engine sums the rest
         // into `other` so a crowded folder never yields unreadable slivers.
         let view = contract::map_view(&snapshot, path.as_deref(), &read_prefs()?)?
-            .fold(disky::map::MAX_TILES, disky::map::MIN_TILE_SHARE);
+            .fold(disker::map::MAX_TILES, disker::map::MIN_TILE_SHARE);
         *app.state::<Engine>().mapped.lock().unwrap() =
             view.records.iter().map(|c| c.path.clone()).collect();
         Ok(Some(view))
@@ -376,8 +376,8 @@ async fn reveal_in_finder(app: AppHandle, path: String) -> CmdResult<()> {
     blocking(move || {
         let listed = app.state::<Engine>().mapped.lock().unwrap().contains(&path);
         if !listed {
-            return Err(disky::exit::DiskyError::new(
-                disky::exit::ExitCode::NotFound,
+            return Err(disker::exit::DiskerError::new(
+                disker::exit::ExitCode::NotFound,
                 "not on the map",
                 format!("{path} is not on the Space map shown"),
             )
@@ -388,10 +388,10 @@ async fn reveal_in_finder(app: AppHandle, path: String) -> CmdResult<()> {
         // exited 1".
         contract::check_on_disk(&path)?;
         // Finder, Explorer or the freedesktop file manager (REQ-XPLAT-008).
-        disky::platform::reveal_path(&path).map_err(|e| {
+        disker::platform::reveal_path(&path).map_err(|e| {
             anyhow::anyhow!(
                 "{} could not reveal {path} ({e})",
-                disky::platform::file_manager_name()
+                disker::platform::file_manager_name()
             )
         })?;
         Ok(())
@@ -401,7 +401,7 @@ async fn reveal_in_finder(app: AppHandle, path: String) -> CmdResult<()> {
 
 /// The Large files list for `filter` in the latest snapshot (REQ-DSCR-004,
 /// REQ-DSCR-013); null when no snapshot exists yet. The listed paths become
-/// the only ones `trash_large` will move. CLI: `disky large --filter <f>`.
+/// the only ones `trash_large` will move. CLI: `disker large --filter <f>`.
 #[tauri::command]
 async fn load_large(app: AppHandle, filter: LargeFilter) -> CmdResult<Option<LargeView>> {
     blocking(move || {
@@ -419,7 +419,7 @@ async fn load_large(app: AppHandle, filter: LargeFilter) -> CmdResult<Option<Lar
 
 /// Move the selected large files to the Trash with one "Large files" history
 /// entry (REQ-DSCR-006, REQ-DSCR-013.A4). Always the Trash, whatever
-/// trash-by-default says. Handled paths leave the listed set. CLI: `disky
+/// trash-by-default says. Handled paths leave the listed set. CLI: `disker
 /// trash <path>... --title "Large files"`.
 #[tauri::command]
 async fn trash_large(app: AppHandle, paths: Vec<String>) -> CmdResult<TrashResult> {
@@ -447,7 +447,7 @@ async fn trash_large(app: AppHandle, paths: Vec<String>) -> CmdResult<TrashResul
 /// The duplicate groups in the latest snapshot (REQ-DSCR-005,
 /// REQ-DSCR-014), hashed on a blocking thread; null when no snapshot exists
 /// yet. The groups become the only paths `trash_dupes` will move. CLI:
-/// `disky dupes`.
+/// `disker dupes`.
 #[tauri::command]
 async fn load_dupes(app: AppHandle) -> CmdResult<Option<DupesView>> {
     blocking(move || {
@@ -466,7 +466,7 @@ async fn load_dupes(app: AppHandle) -> CmdResult<Option<DupesView>> {
         let view = match cached {
             Some(v) => v,
             None => {
-                let v = contract::dupes_view(&snapshot, disky::dupes::DEFAULT_MIN_BYTES, &prefs)?;
+                let v = contract::dupes_view(&snapshot, disker::dupes::DEFAULT_MIN_BYTES, &prefs)?;
                 engine
                     .dupes_cache
                     .lock()
@@ -485,7 +485,7 @@ async fn load_dupes(app: AppHandle) -> CmdResult<Option<DupesView>> {
 /// history entry (REQ-DSCR-006, REQ-DSCR-014.A4). The groups come from the
 /// last `load_dupes`, so a call that would remove every copy of a group is
 /// refused and moves nothing. Handled paths leave their groups; a group's
-/// last copy stays guarded. CLI: `disky trash <path>... --title Duplicates`.
+/// last copy stays guarded. CLI: `disker trash <path>... --title Duplicates`.
 #[tauri::command]
 async fn trash_dupes(app: AppHandle, paths: Vec<String>) -> CmdResult<TrashResult> {
     blocking(move || {
@@ -508,8 +508,8 @@ async fn trash_dupes(app: AppHandle, paths: Vec<String>) -> CmdResult<TrashResul
 /// The Assistant screen's data (REQ-DSCR-009, REQ-DSCR-010): the selected
 /// agent, the proactive checks, goal and disk, the three agents
 /// (REQ-DSCR-007) and the engine's suggestions for the latest snapshot
-/// (REQ-DSCR-008) — an empty feed with checks off. CLI: `disky suggest`,
-/// `disky agents` and `disky prefs`.
+/// (REQ-DSCR-008) — an empty feed with checks off. CLI: `disker suggest`,
+/// `disker agents` and `disker prefs`.
 #[tauri::command]
 async fn load_assistant(app: AppHandle) -> CmdResult<AssistantView> {
     blocking(move || match snapshots::latest_snapshot() {
@@ -586,5 +586,5 @@ fn main() {
             open_full_disk_access
         ])
         .run(tauri::generate_context!())
-        .expect("error while running disky GUI");
+        .expect("error while running disker GUI");
 }

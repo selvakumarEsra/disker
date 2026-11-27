@@ -1,12 +1,12 @@
 // Engine-boundary lint (REQ-DCLEAN-001.A3, REQ-DCLEAN-027.A4).
 //
-// The GUI is a client of the disky engine. gui/src/** and gui/src-tauri/src/**
+// The GUI is a client of the disker engine. gui/src/** and gui/src-tauri/src/**
 // must hold no file walking, size summing, or remove/rename code of their own,
 // and no hard-coded cleanup category ids: categories come from the engine
 // table (src/cleanup.rs CATEGORIES), whose ids this script reads.
 //
 // Allowed: Tauri `invoke` only from src/lib/engine.ts, and only for the
-// command names in COMMANDS (each delegates to `disky::*` in the backend).
+// command names in COMMANDS (each delegates to `disker::*` in the backend).
 // A line may opt out with a trailing `lint-boundary-allow: <reason>` comment;
 // the reason is mandatory.
 //
@@ -118,7 +118,7 @@ for (const f of walk(TAURI_SRC, [".rs"])) check(f, RS_RULES);
 
 if (findings.length) {
   console.error(findings.join("\n"));
-  console.error(`\n${findings.length} boundary finding(s). Move the logic into the disky engine and call it through a Tauri command.`);
+  console.error(`\n${findings.length} boundary finding(s). Move the logic into the disker engine and call it through a Tauri command.`);
   process.exit(1);
 }
 console.log(`lint:boundary — gui/ delegates to the engine; ${ids.length} category ids checked.`);

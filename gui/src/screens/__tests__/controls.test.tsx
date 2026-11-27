@@ -388,7 +388,7 @@ async function errorsAreAnnouncedInAnAlert() {
   render(() => <App />);
   fireEvent.click(within(await screen.findByTestId("idle")).getByRole("button", { name: "Start scan" }));
   const alert = await screen.findByRole("alert");
-  expect(alert).toHaveTextContent("Another disky process is using the snapshot");
+  expect(alert).toHaveTextContent("Another disker process is using the snapshot");
   expect(alert.contains(document.activeElement)).toBe(false);
 }
 

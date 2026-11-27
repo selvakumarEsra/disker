@@ -13,9 +13,9 @@ use std::io;
 use std::time::Duration;
 
 use app::App;
-use disky::db;
-use disky::render;
-use disky::snapshots;
+use disker::db;
+use disker::render;
+use disker::snapshots;
 use tree::load_root;
 
 pub fn run(snapshot_spec: Option<String>) -> Result<()> {
@@ -33,7 +33,7 @@ pub fn run(snapshot_spec: Option<String>) -> Result<()> {
     eprintln!("Loading snapshot {}...", path);
     let root = load_root(&conn, &root_path)?;
 
-    let scan_meta = disky::db::read_scan_meta(&conn);
+    let scan_meta = disker::db::read_scan_meta(&conn);
     let mut app = App::new(path.clone(), root, scan_meta);
     let mut list_state = ListState::default();
     list_state.select(Some(0));
@@ -104,7 +104,7 @@ pub fn run(snapshot_spec: Option<String>) -> Result<()> {
                     app.status = "HTML report exported.".into();
                 }
                 KeyCode::Char('r') => {
-                    app.status = "Run `disky scan` to create new snapshot.".into();
+                    app.status = "Run `disker scan` to create new snapshot.".into();
                 }
                 _ => {}
             }

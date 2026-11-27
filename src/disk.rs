@@ -168,7 +168,7 @@ mod tests {
 
     #[test]
     fn disk_usage_fails_for_missing_path() {
-        assert!(disk_usage(Path::new("/definitely/not/here/disky")).is_err());
+        assert!(disk_usage(Path::new("/definitely/not/here/disker")).is_err());
     }
 
     #[cfg(unix)]

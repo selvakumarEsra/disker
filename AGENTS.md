@@ -1,4 +1,4 @@
-# disky
+# disker
 
 Fast disk analyzer and cleanup CLI in Rust for macOS, Linux and Windows, with a Tauri desktop app — `ncdu` / `dust` / GrandPerspective alternative. Repo: `github.com/selvakumarEsra/disker`.
 
@@ -14,8 +14,8 @@ syscall.
   are one code path. A drive root maps as `C:` (children `C:/Users`, …).
   User-typed paths go through `platform::expand_user`.
 - **Home** is `$HOME` / `%USERPROFILE%` (`platform::home_dir`, environment
-  first). **Data dir**: `~/Library/Application Support/disky`,
-  `$XDG_DATA_HOME/disky` or `~/.local/share/disky`, `%LOCALAPPDATA%\disky`.
+  first). **Data dir**: `~/Library/Application Support/disker`,
+  `$XDG_DATA_HOME/disker` or `~/.local/share/disker`, `%LOCALAPPDATA%\disker`.
   CLI tests must set `HOME`, `USERPROFILE`, `LOCALAPPDATA` and
   `XDG_DATA_HOME` to the temp home.
 - **Default scan root**: `/`, or `%SystemDrive%/` on Windows.
@@ -53,38 +53,36 @@ syscall.
 
 ## Distribution
 
-Five indexable surfaces — `disky schema` + JSON envelopes are the agent contract:
+Three indexable surfaces — `disker schema` + JSON envelopes are the agent contract:
 
 | Surface | URL | Notes |
 |---|---|---|
 | Repo | `github.com/selvakumarEsra/disker` | 18 topics, SEO description, social-preview pending |
-| crates.io | `crates.io/crates/disky` | `cargo install disky` (primary install path) |
-| docs.rs | `docs.rs/disky` | auto-built on crate publish |
 | Releases | `github.com/selvakumarEsra/disker/releases` | macOS, Linux tarballs and a Windows zip per tag |
 | GitHub Pages | `selvakumaresra.github.io/disker` | source: `main` `/docs`, `.nojekyll` bypass + `docs/index.html` (brut palette) |
 
-Install order in README is the order to recommend: binary download → `cargo install --git https://github.com/selvakumarEsra/disker`. The `disky` crate on crates.io is the original project's (no Linux/Windows/GUI work), so it is not recommended. Homebrew tap is not offered yet (earn-back: someone actually asks).
+Install order in README is the order to recommend: binary download → `cargo install --git https://github.com/selvakumarEsra/disker`. The crate is not published to crates.io. Homebrew tap is not offered yet (earn-back: someone actually asks).
 
 ## Snapshot diff
 
-`disky diff <a> <b> [--limit N]` compares two snapshots and reports the
+`disker diff <a> <b> [--limit N]` compares two snapshots and reports the
 files that grew, shrank, were added, or were removed — ordered by absolute
 delta. Both arguments accept `@latest`, an ID, or a path. JSON `records`
 hold `DiffRow { path, kind: added|removed|grew|shrank, size_a, size_b, delta }`.
 
 Useful for "what changed since the last cleanup": scan before, scan after,
-`disky diff old_id new_id`.
+`disker diff old_id new_id`.
 
 ## Cleanup
 
-`disky cleanup` greps the snapshot for known disk-hoggy directories
+`disker cleanup` greps the snapshot for known disk-hoggy directories
 (`node_modules`, `target`, `__pycache__`, `.next`, `dist`, `build`,
 `.venv`/`venv`, `.gradle`, `.pytest_cache`). Default is dry-run.
 
 ```
-disky cleanup --snapshot @latest                              # preview
-disky cleanup --target node_modules,target --apply            # rm -rf
-disky cleanup --target node_modules,target --apply --reversible  # → ~/.Trash
+disker cleanup --snapshot @latest                              # preview
+disker cleanup --target node_modules,target --apply            # rm -rf
+disker cleanup --target node_modules,target --apply --reversible  # → ~/.Trash
 ```
 
 JSON output: `{kind:"cleanup", applied:bool, removed:[paths], records:[CleanupHit], summary:[CategorySummary], total_bytes:N, total_physical_bytes:N, disk?}`.
@@ -93,7 +91,7 @@ usage once the clean finished, the same `disk` the GUI's `CleanResult` carries
 (REQ-DCLEAN-002.A4).
 `CleanupHit = {category, safety: safe|review, path, bytes, physical_bytes, files, note?}` (`bytes` logical, `physical_bytes` on disk).
 
-**GUI contract (REQ-DCLEAN-027).** `disky::contract` builds what the desktop
+**GUI contract (REQ-DCLEAN-027).** `disker::contract` builds what the desktop
 GUI renders (`CleanupView`, `ScanProgress`, `CleanProgress`, `CleanResult`,
 `RestoreResult`) from the same cleanup query, in physical bytes. Clean
 progress goes out on `clean://progress`, one event per item. Commands fail
@@ -105,7 +103,7 @@ scan could not read for permission reasons (`scan_meta.skipped`, and
 walking, size summing, deletion and category ids out of `gui/`.
 
 **Categories (REQ-DCLEAN-033).** One table, `cleanup::CATEGORIES` — the GUI
-and `disky schema` read it; nothing else defines a category. Each entry carries
+and `disker schema` read it; nothing else defines a category. Each entry carries
 an `icon` (a Lucide icon name) that the GUI resolves by name, never by
 category id (REQ-DCLEAN-005).
 
@@ -122,7 +120,7 @@ category id (REQ-DCLEAN-005).
 
 Rules: `ALWAYS_SKIP_SUBSTRINGS` applies to the basename (dev) rules only —
 location rules bypass it and carry their own `skip_children`. Hits outside
-the scan root, under a `.diskyignore` segment, or in an excluded folder are
+the scan root, under a `.diskerignore` segment, or in an excluded folder are
 dropped (`cleanup::in_scope`). A missing location yields nothing. Nested hits
 are dropped (outermost wins), so bytes are never counted twice. No app list
 → no `app_leftovers` (when in doubt, don't report). A dry-run with no
@@ -145,11 +143,11 @@ Prior algos (per-target loop, LEFT JOIN with LIKE) preserved in
 
 Every `cleanup --apply` (CLI or GUI, both via `cleanup::apply`) appends one
 entry to `<data dir>/history.json`, next to the snapshots. The `.json`
-extension keeps it out of `@latest` and `disky list`.
+extension keeps it out of `@latest` and `disker list`.
 
 ```
-disky history [--limit N] --format json   # kind:"history", newest first, total_bytes
-disky restore <id> --format json          # kind:"restore", records:[RestoreReport]
+disker history [--limit N] --format json   # kind:"history", newest first, total_bytes
+disker restore <id> --format json          # kind:"restore", records:[RestoreReport]
 ```
 
 `history` records are `HistoryRow`s: each `Entry` plus `detail` (category
@@ -187,7 +185,7 @@ tests set a temp `HOME`. No test touches the real `~/.Trash` or log.
 ## Space map (REQ-DSCR-003/012)
 
 ```
-disky map [<path>] [--tiles N] --snapshot @latest --format json
+disker map [<path>] [--tiles N] --snapshot @latest --format json
 ```
 
 Envelope `{kind:"map", path, name, root, total_bytes, capacity_bytes,
@@ -212,8 +210,8 @@ runs `open -R` only for a path the last `load_map` listed.
 ## Large files & trash (REQ-DSCR-004/006/013)
 
 ```
-disky large [--filter all|over-10gb|unused-1y] --snapshot @latest --format json
-disky trash <path>... --title "Large files" --format json
+disker large [--filter all|over-10gb|unused-1y] --snapshot @latest --format json
+disker trash <path>... --title "Large files" --format json
 ```
 
 `large` lists regular files of at least 2 GB physical (decimal, the Smart
@@ -246,7 +244,7 @@ meter follows the result's `disk`, and failed paths stay with their reason.
 ## Duplicates (REQ-DSCR-005/014)
 
 ```
-disky dupes [--min-size 1MB] --snapshot @latest --format json
+disker dupes [--min-size 1MB] --snapshot @latest --format json
 ```
 
 Envelope `{kind:"dupes", min_size, groups, extra_copies, reclaimable_bytes,
@@ -273,19 +271,19 @@ Duplicates screen keeps the first copy by default; each card's copies are a
 
 One store, `<data dir>/prefs.json` (next to the snapshots; the `.json`
 extension keeps it out of `@latest`), shared by the CLI and the GUI — no
-copies. `disky::prefs` owns it.
+copies. `disker::prefs` owns it.
 
 ```
-disky prefs --format json                         # kind:"prefs", records:[Prefs]
-disky prefs --set safe_only=false --set goal_bytes=100GB
-disky prefs --set excluded='~/Projects/active,/Volumes/Archive'   # or a JSON array
+disker prefs --format json                         # kind:"prefs", records:[Prefs]
+disker prefs --set safe_only=false --set goal_bytes=100GB
+disker prefs --set excluded='~/Projects/active,/Volumes/Archive'   # or a JSON array
 ```
 
 `Prefs = {trash_by_default, skip_recently_used, safe_only, warn_below_goal,
 goal_bytes, checks:{enabled, frequency: hourly|daily|weekly}, agent:
 claude|codex|gemini, scheduled_scan: off|weekly|monthly, excluded:[string]}`.
 Defaults are the design snapshot's: toggles on, 80 GB (decimal — `80GB` is
-80 000 000 000, unlike `disky filter`'s binary `GB`), checks on daily,
+80 000 000 000, unlike `disker filter`'s binary `GB`), checks on daily,
 `claude`, weekly, no exclusions.
 
 Rules: a missing file is the defaults; a malformed one is an error and is
@@ -293,7 +291,7 @@ never replaced. An unknown key or invalid value exits 2 and writes nothing
 (several `--set`s are all-or-nothing). Writes hold `flock` on `prefs.lock`
 (the history log's `Lock`) and swap in with temp + rename.
 
-`disky cleanup` and the GUI's `contract::load` both apply the store through
+`disker cleanup` and the GUI's `contract::load` both apply the store through
 `ScanContext::with_prefs`: hits inside an excluded folder (`~` expanded,
 whole path components) are dropped, and with `skip_recently_used` on (the
 default) so is any hit whose newest mtime is within 30 days, or unknown. The
@@ -310,8 +308,8 @@ every change with the `set_prefs` Tauri command; "Add folder" calls
 ## Assistant (REQ-DSCR-007/008/009/010/011)
 
 ```
-disky agents --format json    # kind:"agents", claude/codex/gemini in order
-disky suggest --format json   # kind:"suggestions", from @latest + prefs
+disker agents --format json    # kind:"agents", claude/codex/gemini in order
+disker suggest --format json   # kind:"suggestions", from @latest + prefs
 ```
 
 `agents` looks for each CLI in `PATH`, then `~/.local/bin`,
@@ -323,7 +321,7 @@ display_path}`, and the display names come from `agents::AGENTS`.
 category group with hits), as `Suggestion {key, kind, text, bytes,
 categories, actionable, at}`. Every figure is the snapshot's or the disk's,
 and hits gone since the scan are left out. With checks off, the GUI's
-`contract::assistant_view` returns an empty feed, but `disky suggest` still
+`contract::assistant_view` returns an empty feed, but `disker suggest` still
 reports.
 
 GUI: the Assistant screen reads `load_assistant`. Its cards only open a
@@ -335,12 +333,12 @@ notification per below-goal episode (`tauri-plugin-notification`, pinned
 exactly). A test asserts the scheduler has no path to clean, trash or
 delete.
 
-## `.diskyignore` loader (v0.11.0)
+## `.diskerignore` loader (v0.11.0)
 
 Module `src/ignore.rs` (170 LOC, std-only) provides:
 
 - `default_skip_substrings()` — built-in baseline (node_modules, target, …).
-- `load_diskyignore_chain(scan_root)` — walks ancestor dirs up to `$HOME`
+- `load_diskerignore_chain(scan_root)` — walks ancestor dirs up to `$HOME`
   (or `/`), parses gitignore-subset format (one substring per line,
   `#` comments, blank lines skipped, no globs in v1).
 - `should_skip(basename, patterns)` — substring match.
@@ -352,7 +350,7 @@ empty dir, single file, comments, ancestor chain, malformed lines.
 ## N-snapshot growth — OLS (v0.11.0)
 
 ```
-disky growth --over-n N [--fill-target <bytes>]   # default N=5, min 3
+disker growth --over-n N [--fill-target <bytes>]   # default N=5, min 3
 ```
 
 Fits an ordinary-least-squares line through `(snapshot_ts, size)` for
@@ -365,7 +363,7 @@ snapshots. Envelope `kind="growth_n"`:
 ```
 
 Sorted by `slope_bytes_per_day DESC`. Pure f64, no stats crate. Math in
-`src/query.rs::linfit_slope_r2`. The 2-snapshot `disky growth` path is
+`src/query.rs::linfit_slope_r2`. The 2-snapshot `disker growth` path is
 untouched — `--over-n` is additive.
 
 ## Pattern classifier (v0.11.0)
@@ -386,13 +384,13 @@ Decision tree thresholds in `src/pattern.rs`:
 - `STABLE_RATIO = 3.0` (raised from sub-agent default 1.5 post-merge)
 - `DECLINING_SLOPE_FRAC = -0.01`, `DECLINING_R2_MIN = 0.5`
 
-10 unit tests cover each branch + edges. CLI flag `disky churn
+10 unit tests cover each branch + edges. CLI flag `disker churn
 --classify` wiring is a v0.11.1 deliverable; the module is callable
 in-process today.
 
 ## Schema introspection
 
-`disky schema` prints a JSON document describing commands, record shapes,
+`disker schema` prints a JSON document describing commands, record shapes,
 error codes, and snapshot-ref forms. Pair it with `--format json` on any
 command to let an agent bind without prompt-engineering.
 
@@ -406,11 +404,11 @@ All query subcommands accept `--snapshot <ref>` where `<ref>` is:
 | Snapshot ID | `2026-05-15_11-56` | `<data dir>/<id>.db` |
 | Filesystem path | `/tmp/scan.db` | itself, untouched |
 
-`disky list` prints the ID, size, and full path.
+`disker list` prints the ID, size, and full path.
 
 ## Raw SQL
 
-`disky query "<sql>" --snapshot @latest --format json` (or `--format ndjson`)
+`disker query "<sql>" --snapshot @latest --format json` (or `--format ndjson`)
 runs an arbitrary SQL statement against the snapshot. The `files` table has
 columns `path, name, ext, size, mtime, is_dir, depth`. Large integers (DuckDB
 `HugeInt`) are emitted as strings to preserve precision; everything else maps
@@ -418,34 +416,34 @@ to native JSON types. Default row cap: 1000 (`--limit`).
 
 ## MCP server — REMOVED in v0.10.0
 
-`disky-mcp` was deleted in v0.10.0. **CLI is the surface.** Any agent that
-can shell out invokes `disky <cmd> --format json` directly. Hosts that
+`disker-mcp` was deleted in v0.10.0. **CLI is the surface.** Any agent that
+can shell out invokes `disker <cmd> --format json` directly. Hosts that
 cannot shell (Claude Desktop, Cursor, Zed) are unsupported until earn-back
-(see Three surfaces section). The `disky-mcp` bin can be resurrected from
+(see Three surfaces section). The `disker-mcp` bin can be resurrected from
 git history (last commit before removal: `git log --all --diff-filter=D --
-src/bin/disky-mcp.rs`).
+src/bin/disker-mcp.rs`).
 
 ## Cancellable scan
 
-`disky scan` installs a SIGINT handler. On Ctrl-C it drains the in-flight
+`disker scan` installs a SIGINT handler. On Ctrl-C it drains the in-flight
 batch, marks the snapshot partial in `scan_meta`, and exits with status
-`5` (`partial-scan`). The DB is still queryable; `disky stats` returns
+`5` (`partial-scan`). The DB is still queryable; `disker stats` returns
 `partial: true`.
 
 ## Bundled scan (cut round-trips)
 
-`disky scan` can attach query results to its output so one CLI / MCP call
+`disker scan` can attach query results to its output so one CLI / MCP call
 does what used to take four:
 
 ```
-disky scan / --emit-top 50 --emit-dirs 20 --emit-ext 30 --format json
+disker scan / --emit-top 50 --emit-dirs 20 --emit-ext 30 --format json
 ```
 
 Returns a `scan_bundle` envelope with `stats`, `top`, `dirs`, `ext`.
 
 ## Scan progress (NDJSON on stderr)
 
-When stderr is piped, `disky scan` emits NDJSON events instead of the spinner:
+When stderr is piped, `disker scan` emits NDJSON events instead of the spinner:
 
 ```
 {"schema_version":1,"event":"start"}
@@ -467,7 +465,7 @@ Query commands (`top`, `dirs`, `ext`, `find`, `stats`, `list`) honour `--format`
 
 ## Design Feel — visual identity
 
-disky's UX has a goal: **magic-feeling, safe, useful**. The CLI is honest. The HTML reports + the Claude Code skill should *delight*. Three pillars carry it:
+disker's UX has a goal: **magic-feeling, safe, useful**. The CLI is honest. The HTML reports + the Claude Code skill should *delight*. Three pillars carry it:
 
 1. **Contrast.** Paper (`#F5F1E8`) vs ink (`#14110F`). Rust (`#B23A1F`) for the single most important thing on a page. Olive (`#5C6831`) for wins / deltas. No grey-on-grey. No off-white-on-off-white. Numbers in Fraunces (variable serif, opsz 144) so they feel weighty next to Manrope body.
 2. **Space.** Generous gutters (`gap-14` between sections). Section numbers as 3-rem Fraunces at left, blood-rust color — leaves an oversized indent without filler text. Tables breathe — 10–12 px padding, never cramped. Empty space carries the user's attention without instruction.
@@ -507,7 +505,7 @@ fontFamily: { display:['Fraunces','serif'], sans:['Manrope','sans-serif'],
               mono:['JetBrains Mono','monospace'] }
 ```
 
-Any HTML rendered by the `/disky` skill or release-report tooling MUST use these tokens. Any one-off hex outside this set is a bug.
+Any HTML rendered by the `/disker` skill or release-report tooling MUST use these tokens. Any one-off hex outside this set is a bug.
 
 **Exception — the desktop GUI (`gui/`, 2026-11-24).** The Tauri + SolidJS app
 does NOT use the brut palette. It pixel-matches the Claude Design project
@@ -530,26 +528,26 @@ release reports, `docs/index.html`).
 
 | Surface | When it wins |
 |---------|--------------|
-| CLI (`disky <cmd> --format json`) | Every agent that can shell out. Default and only. |
-| `/disky` Claude Code skill | UX layer ON TOP of CLI: AskUserQuestion-driven cleanup wizard + HTML report. Does NOT replace CLI — wraps it. |
+| CLI (`disker <cmd> --format json`) | Every agent that can shell out. Default and only. |
+| `/disker` Claude Code skill | UX layer ON TOP of CLI: AskUserQuestion-driven cleanup wizard + HTML report. Does NOT replace CLI — wraps it. |
 
 **Earn-back criteria** (when MCP / web get re-added):
 
-1. A user on Claude Desktop / Cursor / Zed actually asks for disky and can't shell out → re-implement `disky-mcp` (1 active day from git history).
-2. Browser-driven cleanup UX is requested by someone running disky outside an agent → add `disky web` (FastHTML local server, 1-2 active days).
+1. A user on Claude Desktop / Cursor / Zed actually asks for disker and can't shell out → re-implement `disker-mcp` (1 active day from git history).
+2. Browser-driven cleanup UX is requested by someone running disker outside an agent → add `disker web` (FastHTML local server, 1-2 active days).
 
-Until either trigger, **CLI is canonical**. JSON envelopes + RFC 9457 errors + `disky schema` are the agent contract.
+Until either trigger, **CLI is canonical**. JSON envelopes + RFC 9457 errors + `disker schema` are the agent contract.
 
 **Amendment (2026-11-24) — desktop GUI reinstated.** The maintainer asked
-for a native GUI for running disky outside an agent, which meets earn-back
+for a native GUI for running disker outside an agent, which meets earn-back
 criterion 2. It ships as a **Tauri + SolidJS desktop app in `gui/`**, not a
-`disky web` server. Constraints:
+`disker web` server. Constraints:
 
 - The CLI stays canonical. The GUI is a client of the same engine (the
-  `disky` library crate or the `--format json` envelopes). It never forks
+  `disker` library crate or the `--format json` envelopes). It never forks
   scan, query or cleanup logic, and anything the GUI can do must also be
   doable from the CLI.
-- Destructive actions follow the same rules as the `/disky` wizard:
+- Destructive actions follow the same rules as the `/disker` wizard:
   default dry-run, explicit per-target confirmation, and Trash
   (`--reversible`) as the default.
 - `gui/` is a separate build and does not join the CLI's release matrix
@@ -557,17 +555,16 @@ criterion 2. It ships as a **Tauri + SolidJS desktop app in `gui/`**, not a
   (`tauri.linux.conf.json`, `tauri.windows.conf.json`).
 - MCP remains removed (criterion 1 has still not triggered).
 
-## Claude Code skill — `/disky` (v2 wizard)
+## Claude Code skill — `/disker` (v2 wizard)
 
-Ships at `claude-skill/disky/`. Symlink to `~/.claude-pessoal/skills/disky/`
-(and `~/.claude-mukutu/` if you want it in both profiles). Invoking
-`/disky` runs a 4-stage **AskUserQuestion-driven cleanup wizard** — no
+Ships at `claude-skill/disker/`. Symlink it to `~/.claude/skills/disker/`. Invoking
+`/disker` runs a 4-stage **AskUserQuestion-driven cleanup wizard** — no
 web server, no FastHTML, no MCP. Just CLI + the wizard.
 
 Flow:
 
 1. **Triage** — one AskUser classifies intent: free space / what grew / diagnose slowness.
-2. **Scan + propose** — runs `disky scan`, `disky stats --physical`, `disky top --physical`, `disky cleanup --dry-run`. Builds a propose-3 table ranked by recovery bytes per category.
+2. **Scan + propose** — runs `disker scan`, `disker stats --physical`, `disker top --physical`, `disker cleanup --dry-run`. Builds a propose-3 table ranked by recovery bytes per category.
 3. **Confirm each target** — one AskUser per proposed target with the exact command in the option description. Defaults to `--reversible` (Trash).
 4. **Apply** — runs only confirmed targets. Reports JSON envelope back to chat. Accumulates `total_bytes` across the wizard.
 
@@ -576,8 +573,8 @@ Flow:
 logical, ~13 GB physical) and will look like the disk is 87% full when
 it isn't. Use `df -h` as ground truth for device free space.
 
-Optional final step: `uv run claude-skill/disky/render.py <db>` generates
-an HTML report with the disky brut palette — click-to-copy code blocks
+Optional final step: `uv run claude-skill/disker/render.py <db>` generates
+an HTML report with the disker brut palette — click-to-copy code blocks
 for any commands surfaced (no server, no POST). Reports go in
 `docs/reports/` per the convention in `docs/README.md`.
 
@@ -586,17 +583,17 @@ Anti-patterns the skill rejects:
 - `cleanup --apply` without explicit AskUser confirmation.
 - Proposing targets that didn't surface in `cleanup --dry-run`.
 - Inventing GB numbers ("liberará ~5 GB") when the envelope says exactly N bytes.
-- Using `disky web` or `disky-mcp` (both removed in v0.10.0).
+- Using `disker web` or `disker-mcp` (both removed in v0.10.0).
 
-## Composability — `disky filter --json-input`
+## Composability — `disker filter --json-input`
 
-Chain disky commands together without re-scanning. Any command emitting a
-records envelope can pipe into `disky filter` to apply a predicate.
+Chain disker commands together without re-scanning. Any command emitting a
+records envelope can pipe into `disker filter` to apply a predicate.
 
 ```
-disky top --format json | disky filter --where "size > 1GB"
-disky old --older-than 30d --format json | disky filter --where "ext = 'log'"
-disky growth --format json | disky filter --where "delta_bytes > 100MB"
+disker top --format json | disker filter --where "size > 1GB"
+disker old --older-than 30d --format json | disker filter --where "ext = 'log'"
+disker growth --format json | disker filter --where "delta_bytes > 100MB"
 ```
 
 **Predicate DSL** (intentionally small):
@@ -635,16 +632,16 @@ SELECT path, size, physical_size FROM files
 WHERE is_dir = false ORDER BY physical_size DESC LIMIT 10
 ```
 
-`disky top --physical` / `dirs --physical` / `stats --physical` / `ext --physical` flags shipped in v0.9.0. **Always pass `--physical` in agent flows** — the default logical sum is dominated by sparse files (OrbStack inflates it 100×) and misleads cleanup decisions.
+`disker top --physical` / `dirs --physical` / `stats --physical` / `ext --physical` flags shipped in v0.9.0. **Always pass `--physical` in agent flows** — the default logical sum is dominated by sparse files (OrbStack inflates it 100×) and misleads cleanup decisions.
 
-## Snapshot retention (`disky forget`)
+## Snapshot retention (`disker forget`)
 
 restic-style retention policy. Default dry-run; pass `--apply` to delete.
 At least one `--keep-*` flag is required (otherwise exit code 2).
 
 ```
-disky forget --keep-last 7 --keep-daily 30 --keep-weekly 12 --keep-monthly 12 --keep-yearly 5
-disky forget --keep-last 5 --apply
+disker forget --keep-last 7 --keep-daily 30 --keep-weekly 12 --keep-monthly 12 --keep-yearly 5
+disker forget --keep-last 5 --apply
 ```
 
 Buckets keep the **newest** snapshot per bucket key:
@@ -671,7 +668,7 @@ User-renamed snapshots (IDs that don't match `YYYY-MM-DD_HH-MM`) land in
 
 ## Config file
 
-`~/.config/disky/config.toml` (or `$DISKY_CONFIG_PATH`) supplies per-flag defaults so agents don't repeat `--format json --snapshot @latest` every call. Layer order: built-in defaults → file → env (`DISKY_FORMAT`, `DISKY_SNAPSHOT`) → CLI flag (CLI always wins).
+`~/.config/disker/config.toml` (or `$DISKER_CONFIG_PATH`) supplies per-flag defaults so agents don't repeat `--format json --snapshot @latest` every call. Layer order: built-in defaults → file → env (`DISKER_FORMAT`, `DISKER_SNAPSHOT`) → CLI flag (CLI always wins).
 
 ```toml
 [defaults]
@@ -692,18 +689,18 @@ Malformed config fails fast with exit code 2 (usage) — typos are surfaced rath
 
 ### Scalar stats (cheapest readout)
 
-`disky stats` carries two extra flags for agents that only need totals:
+`disker stats` carries two extra flags for agents that only need totals:
 
 | Flag | Output |
 |------|--------|
 | `--summarize` | `{schema_version:1, kind:"scalar", records:[{bytes, files}]}` — omits scan root, mtime, partial flag, largest file |
 | `--raw` | Bare `bytes` integer on stdout, nothing else. Overrides `--format`. Implies `--summarize` semantics |
 
-Use `--raw` for shell pipelines (`disky stats --raw | numfmt`) and `--summarize` when you still want a JSON envelope but want to skip the heavier fields the default `stats` record carries.
+Use `--raw` for shell pipelines (`disker stats --raw | numfmt`) and `--summarize` when you still want a JSON envelope but want to skip the heavier fields the default `stats` record carries.
 
 Errors in machine mode are emitted to **stderr** as RFC 9457 problem details:
 `{schema_version, type, title, status, detail, retryable}`. The `type` URI
-(`https://disky.dev/errors/<slug>`) is the stable dispatch key — agents should
+(`https://disker.dev/errors/<slug>`) is the stable dispatch key — agents should
 match on `type`, not the localized `detail` string.
 
 ### Exit code taxonomy
@@ -720,13 +717,13 @@ match on `type`, not the localized `detail` string.
 
 ## Snapshots
 
-Auto-saved to `~/Library/Application Support/disky/YYYY-MM-DD_HH-MM.db` via `dirs::data_local_dir()`.
+Auto-saved to `~/Library/Application Support/disker/YYYY-MM-DD_HH-MM.db` via `dirs::data_local_dir()`.
 
 ## CI
 
 CI runs fmt, clippy and the engine tests on macOS, Ubuntu and Windows
 (`windows-2022`: the bundled DuckDB does not compile with Visual Studio
-2026, so `cargo install disky` on Windows needs VS 2022 build tools),
+2026, so building disker on Windows needs VS 2022 build tools),
 and builds the GUI bundle on Ubuntu (.deb, AppImage) and Windows (NSIS).
 Release uploads macOS tarballs plus `x86_64`/`aarch64-unknown-linux-gnu`
 tarballs and an `x86_64-pc-windows-msvc` zip.
@@ -768,12 +765,12 @@ CHANGELOG.md uses Keep a Changelog format — awk extracts entry per tag.
 | What | Command | Size |
 |------|---------|------|
 | Build artifacts | `cargo clean` | ~1GB |
-| Scan snapshots | `rm ~/Library/Application\ Support/disky/*.db` | varies |
+| Scan snapshots | `rm ~/Library/Application\ Support/disker/*.db` | varies |
 | Ad-hoc scan files | `rm auto` (gitignored, won't be committed) | ~300MB |
 
 `.gitignore` covers: `/target`, `*.db`, `auto`, `dist/`, `.claude/`
 
-Test with release binary, not debug: `cargo build --release` → `./target/release/disky`.
+Test with release binary, not debug: `cargo build --release` → `./target/release/disker`.
 
 ## Deploy (devopless)
 
@@ -782,9 +779,9 @@ No containers, no registry, no CI gating for releases — artifacts ship direct.
 | Scenario | Command |
 |----------|---------|
 | Normal release | `git tag vX.Y.Z && git push origin vX.Y.Z` → GH Actions builds + uploads `.tar.gz` |
-| Hotfix (can't wait for CI) | `cargo build --release --target aarch64-apple-darwin` → `gh release upload vX.Y.Z target/.../disky` |
+| Hotfix (can't wait for CI) | `cargo build --release --target aarch64-apple-darwin` → `gh release upload vX.Y.Z target/.../disker` |
 | Rollback | `gh release download vX.Y.Z -p '*.tar.gz'` → extract + replace binary |
-| Share offline | `cargo build --release` → `scp target/release/disky user@host:~/bin/` |
+| Share offline | `cargo build --release` → `scp target/release/disker user@host:~/bin/` |
 
 **Before any release tag:** `cargo clippy -- -D warnings && cargo fmt --check` must pass locally — CI will fail otherwise and the release job depends on the build job.
 
@@ -816,4 +813,4 @@ Operational state of distribution-side work — what's done lives in CHANGELOG; 
 - **Awesome-list PRs** — `rust-unofficial/awesome-rust` (Filesystem), `jaywcjlove/awesome-mac` (Dev Tools), `sindresorhus/awesome-macos-command-line`. Each merged PR = permanent DR-80+ backlink.
 - **Launch sequencing** (single day, in order): Lobste.rs morning → Show HN late morning ET → /r/rust Saturday release thread → X/Mastodon with og:image + asciinema.
 - **Homebrew tap** — a tap under `selvakumarEsra` + formula auto-generated from GH Release tarballs. Earn-back trigger: user explicitly asks OR weekly tarball downloads cross ~50.
-- **docs.rs build** — verify after first crates.io sync that `docs.rs/disky` renders cleanly (DuckDB bundled feature can blow up sandbox builds).
+- **docs.rs build** — if the crate is ever published to crates.io, verify that `docs.rs/disker` renders cleanly (DuckDB bundled feature can blow up sandbox builds).

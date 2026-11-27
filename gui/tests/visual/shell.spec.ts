@@ -25,7 +25,7 @@ async function snapshotBaselineRenders({ page }: { page: Page }) {
       animations: "disabled",
     });
   }
-  await expect(page.locator("aside")).toContainText("disky");
+  await expect(page.locator("aside")).toContainText("disker");
   await expect(page.locator("body")).not.toContainText("Diskee");
 }
 
@@ -97,7 +97,7 @@ async function rendersOfflineWithBundledFontsAndIcons({ page, context }: { page:
   expect(blocked).toEqual([]);
 }
 
-test("snapshot baseline renders with the disky brand (REQ-DCLEAN-032.A1)", snapshotBaselineRenders);
+test("snapshot baseline renders with the disker brand (REQ-DCLEAN-032.A1)", snapshotBaselineRenders);
 test("title bar matches the snapshot within 1% (REQ-DCLEAN-032.A1)", titleBarMatchesSnapshot);
 test("sidebar matches the snapshot within 1% (REQ-DCLEAN-032.A1, A3)", sidebarMatchesSnapshot);
 test("traffic-light slot sits where the snapshot draws its dots (REQ-DCLEAN-032.A1)", trafficLightSlotSitsWhereSnapshotDrawsDots);

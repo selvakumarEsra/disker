@@ -117,7 +117,8 @@ const TRASH_NOTE: &str = "Already in the Trash: cleaning deletes these permanent
 const LEFTOVER_SKIP: &[&str] = &[
     "com.apple.",
     "Apple",
-    "disky",
+    "disker",
+    crate::platform::FORMER_NAME,
     "AddressBook",
     "CallHistoryDB",
     "CallHistoryTransactions",
@@ -206,7 +207,8 @@ pub const MACOS_LOCATIONS: OsLocations = OsLocations {
             "com.apple.cloudd",
             "com.apple.nsurlsessiond",
             "FamilyCircle",
-            "disky",
+            "disker",
+            crate::platform::FORMER_NAME,
         ],
         safety: Safety::Safe,
     },
@@ -256,7 +258,7 @@ pub const LINUX_LOCATIONS: OsLocations = OsLocations {
     },
     app_caches: LocationSet {
         locations: &[loc("~/.cache", Safety::Safe)],
-        skip_children: &["disky"],
+        skip_children: &["disker", crate::platform::FORMER_NAME],
         safety: Safety::Safe,
     },
     temp: LocationSet {
@@ -359,7 +361,7 @@ pub const OS_LOCATIONS: OsLocations = match crate::platform::Os::current() {
 };
 
 /// The single table of cleanup categories (REQ-DCLEAN-033.A2). The GUI and
-/// `disky schema` read this; nothing else defines a category.
+/// `disker schema` read this; nothing else defines a category.
 pub const CATEGORIES: &[Category] = &[
     // ── Developer artefacts (folder-name rules, all `review`) ──────────
     Category {
@@ -527,7 +529,7 @@ pub const CATEGORIES: &[Category] = &[
 /// `~/.cargo/registry/src/index.crates.io-*/cc-1.2.62/src/target/` —
 /// the `cc` Rust crate's source module dir, NOT a cargo build output.
 /// Running that with `--apply` broke the host's build. This list is
-/// the floor; `.diskyignore` extends it.
+/// the floor; `.diskerignore` extends it.
 pub const ALWAYS_SKIP_SUBSTRINGS: &[&str] = &[
     // Rust / Cargo
     "/.cargo/registry/",
@@ -669,7 +671,7 @@ fn basenames_for(targets: &[String]) -> Vec<(&'static str, &'static str)> {
 
 /// True when `path` may be returned as a hit (REQ-DCLEAN-033.A3): it lies
 /// inside `scan_root`, under none of the user-`excluded` folders, and no
-/// segment below the root matches a `.diskyignore` pattern.
+/// segment below the root matches a `.diskerignore` pattern.
 pub fn in_scope(
     path: &str,
     scan_root: Option<&str>,
@@ -868,7 +870,7 @@ pub struct ScanContext {
     pub home: Option<PathBuf>,
     /// Root of the scan. Hits outside it are dropped.
     pub scan_root: Option<String>,
-    /// `.diskyignore` patterns (substring match per path segment).
+    /// `.diskerignore` patterns (substring match per path segment).
     pub ignore: Vec<String>,
     /// Absolute folders the user excluded. Hits inside them are dropped
     /// (REQ-DSCR-002.A1).
@@ -892,7 +894,7 @@ impl ScanContext {
         let scan_root = crate::db::read_scan_meta(conn).map(|m| m.root);
         let ignore = scan_root
             .as_deref()
-            .map(|r| crate::ignore::load_diskyignore_chain(Path::new(r)))
+            .map(|r| crate::ignore::load_diskerignore_chain(Path::new(r)))
             .unwrap_or_default();
         let now_secs = std::time::SystemTime::now()
             .duration_since(std::time::UNIX_EPOCH)
@@ -1129,7 +1131,7 @@ fn basename_roots(
     Ok(out)
 }
 
-/// Find cleanup hits for `targets`, reading the scan root, `.diskyignore`
+/// Find cleanup hits for `targets`, reading the scan root, `.diskerignore`
 /// and home directory from the snapshot and the machine.
 pub fn scan(conn: &Connection, targets: &[String], limit: usize) -> Result<Vec<CleanupHit>> {
     let ctx = ScanContext::from_snapshot(conn);
@@ -1844,7 +1846,7 @@ mod tests {
     fn is_protected_catches_os_caches() {
         assert!(is_protected("/Users/me/Library/Caches/Slack/build"));
         assert!(is_protected(
-            "/Users/me/Library/Application Support/disky/build"
+            "/Users/me/Library/Application Support/disker/build"
         ));
         assert!(is_protected(
             "/Users/me/Library/Group Containers/HUAQ24HBR6.dev.orbstack/data"

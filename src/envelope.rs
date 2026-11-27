@@ -1,4 +1,4 @@
-//! Parse a disky JSON envelope from any reader (stdin, file, byte slice).
+//! Parse a disker JSON envelope from any reader (stdin, file, byte slice).
 //!
 //! Keeps `--json-input` chain mode honest: every command that consumes
 //! prior output validates `schema_version` + `kind` whitelist before

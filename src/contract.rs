@@ -14,15 +14,15 @@
 //!   progress (REQ-DCLEAN-008).
 //! * [`RestoreResult`] — what an Undo restored (REQ-DCLEAN-009.A4, A7).
 //! * [`HistoryView`] — the History screen's rows, each entry with its detail
-//!   and state, and the total cleared (REQ-DSCR-015). `disky history` prints
+//!   and state, and the total cleared (REQ-DSCR-015). `disker history` prints
 //!   the same rows.
 //! * [`MapView`] — a folder's immediate children for the Space map
-//!   (REQ-DSCR-003), the same as `disky map`.
+//!   (REQ-DSCR-003), the same as `disker map`.
 //! * [`LargeView`] — the Large files screen's rows (REQ-DSCR-004), the same
-//!   as `disky large`.
+//!   as `disker large`.
 //! * [`TrashResult`] — what moving reviewed files to the Trash did
-//!   (REQ-DSCR-006), the same as `disky trash`.
-//! * [`EngineError`] — a failed command, typed by disky's exit-code slug so
+//!   (REQ-DSCR-006), the same as `disker trash`.
+//! * [`EngineError`] — a failed command, typed by disker's exit-code slug so
 //!   the GUI never matches on message text (REQ-DCLEAN-018).
 //!
 //! Every byte value is a `u64` of **physical** bytes (REQ-DCLEAN-027.A1).
@@ -205,7 +205,7 @@ pub struct CleanResult {
     /// Paths left untouched, with the reason (REQ-DCLEAN-018.A3).
     pub failed: Vec<Failure>,
     /// Id of the history entry Undo restores; `None` when nothing was
-    /// handled. CLI: `disky restore <id>`.
+    /// handled. CLI: `disker restore <id>`.
     pub history_id: Option<String>,
     /// `None` when nothing was handled (no entry is written).
     pub history_entry: Option<history::Entry>,
@@ -262,7 +262,7 @@ pub fn categories_from_hits(hits: &[CleanupHit]) -> Vec<CategoryView> {
 }
 
 /// Every category's hits for a snapshot — the same query as
-/// `disky cleanup --limit VIEW_LIMIT` (REQ-DCLEAN-001.A1).
+/// `disker cleanup --limit VIEW_LIMIT` (REQ-DCLEAN-001.A1).
 pub fn view_hits(conn: &Connection) -> Result<Vec<CleanupHit>> {
     view_hits_with(conn, &cleanup::ScanContext::from_snapshot(conn))
 }
@@ -318,7 +318,7 @@ pub fn cleanup_view(
 }
 
 /// Files in a snapshot of at least [`LARGE_FILE_BYTES`] physical bytes — one
-/// query. CLI: `disky query "SELECT count(*) FROM files WHERE NOT is_dir AND
+/// query. CLI: `disker query "SELECT count(*) FROM files WHERE NOT is_dir AND
 /// physical_size >= 2000000000"`.
 pub fn large_files_count(conn: &Connection) -> Result<u64> {
     large_files_count_in(conn, &cleanup::ScanContext::default())
@@ -398,7 +398,7 @@ pub use crate::map::{MapChild, MapView};
 /// The Space map of `path` (default: the scan root) in the snapshot at
 /// `snapshot_path` (REQ-DSCR-003): immediate children by physical bytes,
 /// excluded folders left out (REQ-DSCR-002.A1), and the capacity of the
-/// scan root's volume for share of disk. CLI: `disky map [<path>]`.
+/// scan root's volume for share of disk. CLI: `disker map [<path>]`.
 pub fn map_view(snapshot_path: &str, path: Option<&str>, prefs: &Preferences) -> Result<MapView> {
     let conn = crate::db::open_read(snapshot_path)?;
     let ctx = cleanup::ScanContext::from_snapshot(&conn).with_prefs(prefs);
@@ -415,7 +415,7 @@ pub fn check_on_disk(path: &str) -> Result<()> {
         return Ok(());
     }
     let name = path.rsplit('/').find(|p| !p.is_empty()).unwrap_or(path);
-    Err(crate::exit::DiskyError::new(
+    Err(crate::exit::DiskerError::new(
         crate::exit::ExitCode::NotFound,
         "no longer on disk",
         format!("{name} was removed after the last scan. Scan again to refresh the map."),
@@ -430,7 +430,7 @@ pub use crate::large::{LargeFile, LargeFilter, LargeView};
 /// first. Excluded folders are left out and, with skip-recently-used on, so
 /// are files modified in the last 30 days (REQ-DSCR-002.A1, A2) — the same
 /// scope as the Smart Clean shortcut's [`large_files_count_in`], so the two
-/// counts agree. CLI: `disky large [--filter …]`.
+/// counts agree. CLI: `disker large [--filter …]`.
 pub fn large_view(
     snapshot_path: &str,
     filter: LargeFilter,
@@ -463,7 +463,7 @@ pub use crate::dupes::{DupeCopy, DupeGroup, DupesView};
 /// (REQ-DSCR-005): byte-identical regular files of at least `min_size`
 /// logical bytes, largest reclaimable first. Excluded folders are left out
 /// and, with skip-recently-used on, so are files modified in the last 30
-/// days (REQ-DSCR-002.A1, A2). CLI: `disky dupes [--min-size …]`.
+/// days (REQ-DSCR-002.A1, A2). CLI: `disker dupes [--min-size …]`.
 pub fn dupes_view(snapshot_path: &str, min_size: u64, prefs: &Preferences) -> Result<DupesView> {
     let conn = crate::db::open_read(snapshot_path)?;
     let ctx = cleanup::ScanContext::from_snapshot(&conn).with_prefs(prefs);
@@ -513,7 +513,7 @@ pub fn suggestions_for(
 }
 
 /// [`AssistantView`] from a loaded view, its hits and the detected agents.
-/// With checks off the feed is empty (REQ-DSCR-009.A4); `disky suggest`
+/// With checks off the feed is empty (REQ-DSCR-009.A4); `disker suggest`
 /// reports regardless.
 pub fn assistant_view_of(
     view: &CleanupView,
@@ -647,7 +647,7 @@ fn physical_bytes_on_disk(path: &Path) -> u64 {
 /// * `listed` — the paths the engine listed in the view the user is looking
 ///   at (the last large-files or duplicates result). A path in `paths` that
 ///   is not in `listed` refuses the whole call, before anything moves
-///   (A2). `disky trash` passes its own arguments: paths named on the
+///   (A2). `disker trash` passes its own arguments: paths named on the
 ///   command line count as reviewed by the user.
 /// * `groups` — the duplicate groups the paths came from. Selecting every
 ///   copy of a group refuses the whole call, so one copy always stays (A3).
@@ -663,11 +663,11 @@ pub fn trash_reviewed(
     log: &Path,
     trash_root: &Path,
 ) -> Result<TrashResult> {
-    use crate::exit::{DiskyError, ExitCode};
+    use crate::exit::{DiskerError, ExitCode};
     let mut selected: Vec<&String> = Vec::new();
     for p in paths {
         if !listed.contains(p) {
-            return Err(DiskyError::new(
+            return Err(DiskerError::new(
                 ExitCode::Generic,
                 REFUSED_NOT_LISTED,
                 format!("{p} is not in the list you reviewed; nothing was moved"),
@@ -680,7 +680,7 @@ pub fn trash_reviewed(
     }
     for g in groups.unwrap_or_default() {
         if !g.is_empty() && g.iter().all(|c| selected.contains(&c)) {
-            return Err(DiskyError::new(
+            return Err(DiskerError::new(
                 ExitCode::Generic,
                 REFUSED_EVERY_COPY,
                 format!(
@@ -736,7 +736,7 @@ pub fn trash_reviewed(
 /// path outside the groups is refused (REQ-DSCR-006.A2), and so is a call
 /// that would remove every copy of any group (A3); either way nothing
 /// moves. A group whose other copies were already trashed still guards its
-/// last copy. CLI: `disky trash <path>... --title Duplicates`.
+/// last copy. CLI: `disker trash <path>... --title Duplicates`.
 pub fn trash_dupes(
     groups: &[Vec<String>],
     paths: &[String],
@@ -831,7 +831,7 @@ pub fn clean_title(opened_by: Option<&str>) -> &'static str {
 }
 
 /// Clean exactly the reviewed `paths` through [`cleanup::apply`] and record
-/// the history entry in `log`. Trash mode is reversible via `disky restore`
+/// the history entry in `log`. Trash mode is reversible via `disker restore`
 /// (REQ-DCLEAN-034). A path gone since the scan is reported in `failed`
 /// with reason `missing`, and the rest proceed (REQ-DCLEAN-029.A1).
 pub fn clean(
@@ -944,7 +944,7 @@ pub struct RestoreResult {
 }
 
 /// Undo a clean: [`history::restore`] on entry `id`, then read disk usage.
-/// CLI: `disky restore <id>`.
+/// CLI: `disker restore <id>`.
 pub fn restore(log: &Path, id: &str) -> Result<RestoreResult> {
     let report = history::restore(log, id)?;
     let near = report
@@ -964,7 +964,7 @@ pub fn restore(log: &Path, id: &str) -> Result<RestoreResult> {
 pub enum HistoryState {
     /// A Trash clean younger than [`history::RESTORE_WINDOW_DAYS`] with items
     /// not yet back: "Restore". A partial restore (some items no longer in
-    /// the Trash) stays here, since `disky restore` retries the rest.
+    /// the Trash) stays here, since `disker restore` retries the rest.
     Restorable,
     /// Every item is back (`restored_at` set): the "Restored" tag.
     Restored,
@@ -976,7 +976,7 @@ pub enum HistoryState {
 }
 
 /// One History row: the log entry plus what the screen shows for it. The
-/// CLI's `disky history` records are these same rows (one derivation).
+/// CLI's `disker history` records are these same rows (one derivation).
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct HistoryRow {
     #[serde(flatten)]
@@ -1054,18 +1054,18 @@ pub fn history_view_of(mut entries: Vec<history::Entry>, now: DateTime<Utc>) -> 
 }
 
 /// The History screen's view of the log at `log`, newest first. CLI:
-/// `disky history --format json` (same rows, `total_bytes` on the envelope).
+/// `disker history --format json` (same rows, `total_bytes` on the envelope).
 pub fn history_view(log: &Path, now: DateTime<Utc>) -> Result<HistoryView> {
     Ok(history_view_of(history::list(log)?, now))
 }
 
-/// [`history_view`] at the current time — what `disky history` and the
+/// [`history_view`] at the current time — what `disker history` and the
 /// GUI's `list_history` call.
 pub fn history_view_now(log: &Path) -> Result<HistoryView> {
     history_view(log, Utc::now())
 }
 
-/// A failed engine call as the GUI receives it: disky's RFC 9457 fields,
+/// A failed engine call as the GUI receives it: disker's RFC 9457 fields,
 /// with `code` the stable exit-code slug (`lock-held`, `io`, …). The GUI
 /// dispatches on `code`, never on `detail` (REQ-DCLEAN-018.A1).
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -1867,7 +1867,8 @@ mod tests {
 
     #[test]
     fn engine_errors_carry_the_exit_slug() {
-        let held: EngineError = anyhow::Error::from(crate::exit::DiskyError::lock_held("x")).into();
+        let held: EngineError =
+            anyhow::Error::from(crate::exit::DiskerError::lock_held("x")).into();
         assert_eq!(held.code, "lock-held");
         assert!(held.retryable);
         let duck: EngineError =
@@ -2136,12 +2137,12 @@ mod assistant_tests {
 
     #[test]
     fn a_path_gone_since_the_scan_is_explained() {
-        let dir = std::env::temp_dir().join(format!("disky-ondisk-{}", std::process::id()));
+        let dir = std::env::temp_dir().join(format!("disker-ondisk-{}", std::process::id()));
         std::fs::create_dir_all(&dir).unwrap();
         assert!(check_on_disk(dir.to_str().unwrap()).is_ok());
         let gone = dir.join("blobs");
         let err = check_on_disk(&crate::platform::to_slash(&gone)).unwrap_err();
-        let e = err.downcast_ref::<crate::exit::DiskyError>().unwrap();
+        let e = err.downcast_ref::<crate::exit::DiskerError>().unwrap();
         assert_eq!(e.code, crate::exit::ExitCode::NotFound);
         assert_eq!(
             e.detail,

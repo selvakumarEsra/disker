@@ -1,6 +1,6 @@
 /**
  * Duplicates copy (REQ-DSCR-014), from the snapshot's Duplicates markup.
- * Every size is an engine figure (`disky dupes`); this module only words
+ * Every size is an engine figure (`disker dupes`); this module only words
  * and formats them, and adds up the engine's per-copy bytes of the copies
  * the user chose to remove.
  */

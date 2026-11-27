@@ -1,7 +1,7 @@
 //! Large files (REQ-DSCR-004): regular files of at least 2 GB physical,
 //! largest first, each with its last-opened (access) time.
 //!
-//! `disky large` and the GUI's Large files screen read the same [`large`]
+//! `disker large` and the GUI's Large files screen read the same [`large`]
 //! call: one query over the snapshot. Excluded folders and
 //! skip-recently-used scope it exactly as they scope the Smart Clean
 //! "Large files" shortcut count (REQ-DSCR-002), so the screen's "All" count
@@ -85,7 +85,7 @@ pub struct LargeFile {
     pub unused_1y: bool,
 }
 
-/// What `disky large` prints and the Large files screen renders.
+/// What `disker large` prints and the Large files screen renders.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct LargeView {
     pub filter: LargeFilter,

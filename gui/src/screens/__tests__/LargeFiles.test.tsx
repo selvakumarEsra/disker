@@ -15,7 +15,7 @@ const GB = 1e9;
 const DAY = 86_400_000;
 const ago = (days: number) => new Date(Date.now() - days * DAY).toISOString();
 
-/** The snapshot's LARGE rows, as `disky large` lists them (largest first). */
+/** The snapshot's LARGE rows, as `disker large` lists them (largest first). */
 const ROWS: [string, string, number, number, boolean][] = [
   ["Windows 11 VM.utm", "~/Library/Containers/UTM", 38.2, 245, false],
   ["Photo library backup.zip", "~/Documents/Backups", 22.6, 1100, true],

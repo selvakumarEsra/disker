@@ -1,10 +1,10 @@
 use clap::{Parser, Subcommand, ValueEnum};
 
-use disky::render::Format;
+use disker::render::Format;
 
 #[derive(Parser)]
 #[command(
-    name = "disky",
+    name = "disker",
     about = "Fast disk analyzer and cleanup CLI for macOS, Linux and Windows",
     version
 )]
@@ -51,7 +51,7 @@ pub enum Command {
     /// Scan a directory and store results
     Scan {
         /// Path to scan (default: `/`, or the system drive on Windows)
-        #[arg(default_value_t = disky::platform::default_root())]
+        #[arg(default_value_t = disker::platform::default_root())]
         path: String,
 
         /// Output DuckDB file path (default: auto-named in data dir)
@@ -59,7 +59,7 @@ pub enum Command {
         db: Option<String>,
 
         /// Also emit the top N largest files in the result (cuts a round-trip
-        /// for agents — avoids needing a separate `disky top` call).
+        /// for agents — avoids needing a separate `disker top` call).
         #[arg(long, value_name = "N")]
         emit_top: Option<usize>,
 
@@ -146,7 +146,7 @@ pub enum Command {
         /// artefacts only with --apply). Developer: node_modules, target,
         /// pycache, next, dist, build, venv, gradle, pytest. System:
         /// system_caches, app_caches, temp, logs, trash, app_leftovers,
-        /// old_downloads. `disky schema` lists each with its safety.
+        /// old_downloads. `disker schema` lists each with its safety.
         #[arg(short, long, value_delimiter = ',')]
         target: Vec<String>,
         #[arg(short, long, default_value = "@latest", help = SNAPSHOT_HELP)]
@@ -185,10 +185,10 @@ pub enum Command {
     /// List available snapshots
     List,
 
-    /// Filter records from a prior disky JSON envelope (stdin) by a
+    /// Filter records from a prior disker JSON envelope (stdin) by a
     /// simple predicate. Composes with any command that emits records.
     ///
-    /// Example: `disky top --format json | disky filter --where "size > 1GB"`
+    /// Example: `disker top --format json | disker filter --where "size > 1GB"`
     ///
     /// Supported fields: size (u64), ext (str), name (str), path (str).
     /// Supported ops: =, !=, >, <, >=, <=, LIKE.
@@ -295,7 +295,7 @@ pub enum Command {
 
     /// A folder's immediate children by physical size, largest first — the
     /// desktop GUI's Space map. Default folder: the snapshot's scan root.
-    /// Excluded folders (`disky prefs`) are left out. A folder that is not in
+    /// Excluded folders (`disker prefs`) are left out. A folder that is not in
     /// the snapshot exits 4.
     Map {
         /// Absolute folder path (`~/` is expanded). Default: the scan root.
@@ -311,12 +311,12 @@ pub enum Command {
 
     /// Regular files of at least 2 GB physical, largest first, with their
     /// last-opened time — the desktop GUI's Large files screen. Excluded
-    /// folders and skip-recently-used (`disky prefs`) apply.
+    /// folders and skip-recently-used (`disker prefs`) apply.
     Large {
         /// all (>= 2 GB) | over-10gb (>= 10 GB) | unused-1y (last opened
         /// more than 365 days ago).
         #[arg(long, value_enum, default_value = "all")]
-        filter: disky::large::LargeFilter,
+        filter: disker::large::LargeFilter,
         #[arg(short, long, default_value = "@latest", help = SNAPSHOT_HELP)]
         snapshot: String,
     },
@@ -325,7 +325,7 @@ pub enum Command {
     /// then a full content hash; never by name), largest reclaimable first —
     /// the desktop GUI's Duplicates screen. Each file is re-checked on disk;
     /// hard links count once. Excluded folders and skip-recently-used
-    /// (`disky prefs`) apply.
+    /// (`disker prefs`) apply.
     Dupes {
         /// Smallest file compared: bytes, or e.g. 1MB (decimal) / 1MiB.
         #[arg(long, value_name = "BYTES", default_value = "1MB", value_parser = parse_min_size)]
@@ -335,7 +335,7 @@ pub enum Command {
     },
 
     /// Move the named files or folders to the Trash and record one history
-    /// entry (restorable with `disky restore <id>`). Paths named here count
+    /// entry (restorable with `disker restore <id>`). Paths named here count
     /// as reviewed. A path that is missing or cannot be moved is reported
     /// and the rest still go.
     Trash {
@@ -359,7 +359,7 @@ pub enum Command {
     /// path. Never overwrites: occupied paths are reported as conflicts and
     /// stay in the Trash. Re-running retries items not yet restored.
     Restore {
-        /// Entry id from `disky history`.
+        /// Entry id from `disker history`.
         id: String,
     },
 
@@ -370,7 +370,7 @@ pub enum Command {
     Agents,
 
     /// The Assistant's suggestions from the latest snapshot, the disk and
-    /// `disky prefs`: goal (below the goal) or ok, then dev, dl and left
+    /// `disker prefs`: goal (below the goal) or ok, then dev, dl and left
     /// when those categories have hits. Reported whatever checks.enabled
     /// says. Never cleans anything.
     Suggest {
@@ -393,11 +393,11 @@ pub enum Command {
     },
 }
 
-/// `--min-size` for `disky dupes`: a positive byte count with an optional
-/// decimal (`MB` = 10⁶) or binary (`MiB`) suffix, as `disky prefs` parses
+/// `--min-size` for `disker dupes`: a positive byte count with an optional
+/// decimal (`MB` = 10⁶) or binary (`MiB`) suffix, as `disker prefs` parses
 /// sizes. Anything else is a usage error (exit 2).
 fn parse_min_size(v: &str) -> Result<u64, String> {
-    disky::prefs::parse_bytes(v).map_err(|_| {
+    disker::prefs::parse_bytes(v).map_err(|_| {
         format!("--min-size must be a positive byte count (e.g. 1000000 or 1MB), got '{v}'")
     })
 }

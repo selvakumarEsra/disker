@@ -385,7 +385,7 @@ pub fn cleanup(
         println!();
         println!("Removed {} path(s).", rm.len());
         if let Some(id) = history_id {
-            println!("Recorded as history entry {id} (see `disky history`).");
+            println!("Recorded as history entry {id} (see `disker history`).");
         }
     } else {
         println!();
@@ -394,7 +394,7 @@ pub fn cleanup(
     Ok(())
 }
 
-/// `disky prefs` (REQ-DSCR-001.A1): one `Prefs` record under kind `prefs`,
+/// `disker prefs` (REQ-DSCR-001.A1): one `Prefs` record under kind `prefs`,
 /// or `key = value` lines on a TTY (dotted keys for nested values).
 pub fn prefs(p: &crate::prefs::Prefs, format: Format) -> Result<()> {
     if format.is_machine() {
@@ -470,7 +470,7 @@ pub fn history(view: &HistoryView, limit: usize, format: Format) -> Result<()> {
     Ok(())
 }
 
-/// `disky map` (REQ-DSCR-003): one envelope `{kind:"map", path, name, root,
+/// `disker map` (REQ-DSCR-003): one envelope `{kind:"map", path, name, root,
 /// total_bytes, capacity_bytes, records:[MapChild]}`, or a size table.
 pub fn map(view: &MapView, format: Format) -> Result<()> {
     match format {
@@ -542,7 +542,7 @@ pub fn export_html_report(conn: &Connection, db_path: &str) -> Result<()> {
     use std::time::{SystemTime, UNIX_EPOCH};
 
     let ts = SystemTime::now().duration_since(UNIX_EPOCH)?.as_secs();
-    let out = format!("/tmp/disky-report-{}.html", ts);
+    let out = format!("/tmp/disker-report-{}.html", ts);
 
     let mut top_lines = vec![];
     let mut stmt = conn
@@ -560,11 +560,11 @@ pub fn export_html_report(conn: &Connection, db_path: &str) -> Result<()> {
 
     let html = format!(
         r#"<!DOCTYPE html><html><head><meta charset="UTF-8">
-<title>disky report</title>
+<title>disker report</title>
 <style>body{{font-family:monospace;background:#111;color:#eee;padding:2em}}
 table{{border-collapse:collapse;width:100%}}td{{padding:4px 8px;border-bottom:1px solid #333}}
 tr:hover{{background:#222}}h1{{color:#0ff}}</style></head>
-<body><h1>disky — {}</h1>
+<body><h1>disker — {}</h1>
 <h2>Top 20 largest files</h2>
 <table>{}</table>
 </body></html>"#,
@@ -580,7 +580,7 @@ tr:hover{{background:#222}}h1{{color:#0ff}}</style></head>
     Ok(())
 }
 
-/// `disky large` (REQ-DSCR-004): one envelope `{kind:"large", filter, count,
+/// `disker large` (REQ-DSCR-004): one envelope `{kind:"large", filter, count,
 /// total_bytes, records:[LargeFile]}`, or a table with `*` marking files
 /// unused for over a year.
 pub fn large(view: &LargeView, format: Format) -> Result<()> {
@@ -621,7 +621,7 @@ pub fn large(view: &LargeView, format: Format) -> Result<()> {
     Ok(())
 }
 
-/// `disky dupes` (REQ-DSCR-005): one envelope `{kind:"dupes", min_size,
+/// `disker dupes` (REQ-DSCR-005): one envelope `{kind:"dupes", min_size,
 /// groups, extra_copies, reclaimable_bytes, records:[DupeGroup]}`, one group
 /// per line in ndjson, or a table of groups with their copies.
 pub fn dupes(view: &DupesView, format: Format) -> Result<()> {
@@ -662,7 +662,7 @@ pub fn dupes(view: &DupesView, format: Format) -> Result<()> {
     Ok(())
 }
 
-/// `disky trash` (REQ-DSCR-006): one envelope `{kind:"trash", handled,
+/// `disker trash` (REQ-DSCR-006): one envelope `{kind:"trash", handled,
 /// failed, freed_physical_bytes, history_id, disk}`, or a summary.
 pub fn trash(r: &TrashResult, format: Format) -> Result<()> {
     if format.is_machine() {
@@ -683,13 +683,13 @@ pub fn trash(r: &TrashResult, format: Format) -> Result<()> {
         format_size(r.freed_physical_bytes, BINARY),
         r.history_id
             .as_deref()
-            .map(|id| format!(" · undo with `disky restore {id}`"))
+            .map(|id| format!(" · undo with `disker restore {id}`"))
             .unwrap_or_default()
     );
     Ok(())
 }
 
-/// `disky agents` (REQ-DSCR-007): `{kind:"agents", records:[Agent]}`, one
+/// `disker agents` (REQ-DSCR-007): `{kind:"agents", records:[Agent]}`, one
 /// agent per line in ndjson, or a table.
 pub fn agents(list: &[crate::agents::Agent], format: Format) -> Result<()> {
     if format.is_machine() {
@@ -705,7 +705,7 @@ pub fn agents(list: &[crate::agents::Agent], format: Format) -> Result<()> {
     Ok(())
 }
 
-/// `disky suggest` (REQ-DSCR-008): `{kind:"suggestions",
+/// `disker suggest` (REQ-DSCR-008): `{kind:"suggestions",
 /// records:[Suggestion]}` in feed order, one per line in ndjson, or the
 /// feed as text.
 pub fn suggestions(list: &[crate::assistant::Suggestion], format: Format) -> Result<()> {

@@ -7,7 +7,6 @@ dist/
 # Only ignore raw nextest scratch + tmp tree paths.
 /tmp/
 
-bilimanager
 
 # Local-only scratch (QA screenshots from doqa, ad-hoc HTML copies). Never committed.
 # Use docs/ for committed artifacts.

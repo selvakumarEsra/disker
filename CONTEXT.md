@@ -1,4 +1,4 @@
-# disky — Domain Context
+# disker — Domain Context
 
 ## Purpose
 
@@ -6,7 +6,7 @@ macOS disk analyzer with persistent snapshots. Primary use: track disk usage ove
 
 ## Core Concepts
 
-**Snapshot** — result of one full scan. Stored as DuckDB file at `~/.local/share/disky/YYYY-MM-DD_HH-MM.db`. Immutable after creation.
+**Snapshot** — result of one full scan. Stored as DuckDB file at `~/.local/share/disker/YYYY-MM-DD_HH-MM.db`. Immutable after creation.
 
 **Scan** — process of traversing the filesystem and writing a Snapshot. Default root: `/`. Blocking with progress spinner. ~3min for full macOS disk.
 
@@ -18,7 +18,7 @@ macOS disk analyzer with persistent snapshots. Primary use: track disk usage ove
 
 **Mode**: Hybrid — TUI for interactive exploration, HTML report for archiving and sharing.
 
-**Entry point**: `disky` launches TUI. Shows latest Snapshot if exists, else triggers Scan first.
+**Entry point**: `disker` launches TUI. Shows latest Snapshot if exists, else triggers Scan first.
 
 **TUI layout**:
 - Default view: directory tree (ncdu-style), size accumulated per dir
@@ -42,9 +42,9 @@ macOS disk analyzer with persistent snapshots. Primary use: track disk usage ove
 
 ## Storage
 
-Snapshots: `~/.local/share/disky/`
+Snapshots: `~/.local/share/disker/`
 Format: `YYYY-MM-DD_HH-MM.db` (DuckDB)
-`disky list` — shows available snapshots with file count and total size.
+`disker list` — shows available snapshots with file count and total size.
 
 ## Stack
 

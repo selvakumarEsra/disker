@@ -9,7 +9,7 @@ use serde::Deserialize;
 use std::fs;
 use std::path::{Path, PathBuf};
 
-/// Top-level config loaded from `~/.config/disky/config.toml`.
+/// Top-level config loaded from `~/.config/disker/config.toml`.
 #[derive(Debug, Clone, Default, Deserialize)]
 #[serde(default)]
 pub struct Config {
@@ -46,17 +46,17 @@ pub struct OutputConfig {
 }
 
 impl Config {
-    /// Path resolution: $DISKY_CONFIG_PATH wins; otherwise
-    /// `dirs::config_dir()/disky/config.toml`.
+    /// Path resolution: $DISKER_CONFIG_PATH wins; otherwise
+    /// `dirs::config_dir()/disker/config.toml`.
     pub fn default_path() -> Option<PathBuf> {
-        if let Ok(p) = std::env::var("DISKY_CONFIG_PATH") {
+        if let Ok(p) = std::env::var("DISKER_CONFIG_PATH") {
             return Some(PathBuf::from(p));
         }
-        dirs::config_dir().map(|d| d.join("disky").join("config.toml"))
+        dirs::config_dir().map(|d| crate::platform::carry_over_legacy(&d).join("config.toml"))
     }
 
     /// Load from `default_path()`. Missing file → empty config (not an error).
-    /// Malformed file → `DiskyError::usage`-compatible error message.
+    /// Malformed file → `DiskerError::usage`-compatible error message.
     pub fn load() -> Result<Self> {
         match Self::default_path() {
             Some(p) if p.exists() => Self::load_from(&p),
@@ -74,10 +74,10 @@ impl Config {
 
     /// Apply env-var overrides on top of the parsed file.
     pub fn merged_with_env(mut self) -> Self {
-        if let Ok(f) = std::env::var("DISKY_FORMAT") {
+        if let Ok(f) = std::env::var("DISKER_FORMAT") {
             self.defaults.format = Some(f);
         }
-        if let Ok(s) = std::env::var("DISKY_SNAPSHOT") {
+        if let Ok(s) = std::env::var("DISKER_SNAPSHOT") {
             self.defaults.snapshot = Some(s);
         }
         self
@@ -102,10 +102,10 @@ mod tests {
     use std::io::Write;
     use std::sync::{Mutex, MutexGuard};
 
-    /// `load_from` applies `DISKY_*` env overrides and env vars are
+    /// `load_from` applies `DISKER_*` env overrides and env vars are
     /// process-global, while `cargo test` runs tests as threads of one
     /// process. Every test that reads or mutates those vars holds this lock,
-    /// so `env_overrides_file_values` can't leak `DISKY_FORMAT=json` into a
+    /// so `env_overrides_file_values` can't leak `DISKER_FORMAT=json` into a
     /// concurrently running file-only test.
     static ENV_LOCK: Mutex<()> = Mutex::new(());
 
@@ -161,22 +161,22 @@ mod tests {
 
     #[test]
     fn env_overrides_file_values() {
-        // Env vars are process-global; hold the lock while DISKY_FORMAT is set.
+        // Env vars are process-global; hold the lock while DISKER_FORMAT is set.
         let _env = env_lock();
         let tmp = tempfile::NamedTempFile::new().unwrap();
         writeln!(tmp.as_file(), "[defaults]\nformat = \"text\"").unwrap();
-        std::env::set_var("DISKY_FORMAT", "json");
+        std::env::set_var("DISKER_FORMAT", "json");
         let cfg = Config::load_from(tmp.path()).unwrap();
-        std::env::remove_var("DISKY_FORMAT");
+        std::env::remove_var("DISKER_FORMAT");
         assert_eq!(cfg.format(), Some("json"));
     }
 
     #[test]
     fn default_path_honours_env_override() {
         let _env = env_lock();
-        std::env::set_var("DISKY_CONFIG_PATH", "/tmp/custom-disky.toml");
+        std::env::set_var("DISKER_CONFIG_PATH", "/tmp/custom-disker.toml");
         let p = Config::default_path().unwrap();
-        std::env::remove_var("DISKY_CONFIG_PATH");
-        assert_eq!(p, PathBuf::from("/tmp/custom-disky.toml"));
+        std::env::remove_var("DISKER_CONFIG_PATH");
+        assert_eq!(p, PathBuf::from("/tmp/custom-disker.toml"));
     }
 }

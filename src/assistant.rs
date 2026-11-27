@@ -18,7 +18,7 @@
 //! then offers nothing (A3). Category ids come from [`CATEGORIES`]; nothing
 //! here defines a category.
 //!
-//! `disky suggest --format json` prints these records whatever
+//! `disker suggest --format json` prints these records whatever
 //! `checks.enabled` says (the CLI is diagnostic); the GUI's
 //! [`crate::contract::assistant_view`] empties the feed when checks are off
 //! (REQ-DSCR-009.A4).

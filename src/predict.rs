@@ -38,7 +38,7 @@ pub fn predict(physical: bool, free_bytes_now: Option<u64>) -> Result<PredictRec
     // Collect (timestamp, total_bytes) per snapshot in data dir.
     let snaps = snapshots::list_snapshots();
     if snaps.is_empty() {
-        return Ok(empty("no snapshots found — run `disky scan` first"));
+        return Ok(empty("no snapshots found — run `disker scan` first"));
     }
     let mut samples: Vec<(f64, f64)> = Vec::new();
     for (path, _) in &snaps {

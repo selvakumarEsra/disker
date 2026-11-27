@@ -34,6 +34,6 @@ export function hasFullDiskAccess(os: Os): boolean {
 /** Why a scan could not read some paths, worded for the OS. */
 export function skippedHint(os: Os): string {
   return hasFullDiskAccess(os)
-    ? "disky needs Full Disk Access to read them."
-    : "disky does not have permission to read them.";
+    ? "disker needs Full Disk Access to read them."
+    : "disker does not have permission to read them.";
 }

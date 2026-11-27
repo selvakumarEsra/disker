@@ -1,4 +1,4 @@
-//! `.diskyignore` loader — gitignore-style ergonomics, additive only.
+//! `.diskerignore` loader — gitignore-style ergonomics, additive only.
 //!
 //! Patterns are **substring matches** against directory basenames, consistent
 //! with the built-in skip list. Globs (`*`, `?`, `**`) and negation (`!`) are
@@ -8,7 +8,7 @@ use std::fs;
 use std::path::{Path, PathBuf};
 
 /// Built-in skip list — these directory basenames are filtered out of every
-/// scan regardless of `.diskyignore` contents.
+/// scan regardless of `.diskerignore` contents.
 pub fn default_skip_substrings() -> Vec<String> {
     [
         "node_modules",
@@ -28,11 +28,11 @@ pub fn default_skip_substrings() -> Vec<String> {
 }
 
 /// Walk from `scan_root` up to the user's HOME (or `/`), reading any
-/// `.diskyignore` files. Returns the merged additive pattern list.
+/// `.diskerignore` files. Returns the merged additive pattern list.
 ///
 /// The walk is bounded: it stops at HOME (when set) or at the filesystem root,
 /// whichever comes first. Ancestors **above** HOME are not consulted.
-pub fn load_diskyignore_chain(scan_root: &Path) -> Vec<String> {
+pub fn load_diskerignore_chain(scan_root: &Path) -> Vec<String> {
     let home = std::env::var_os("HOME").map(PathBuf::from);
     let mut patterns: Vec<String> = Vec::new();
     let mut seen: std::collections::HashSet<String> = std::collections::HashSet::new();
@@ -44,7 +44,7 @@ pub fn load_diskyignore_chain(scan_root: &Path) -> Vec<String> {
         .unwrap_or_else(|_| scan_root.to_path_buf());
 
     loop {
-        let candidate = cursor.join(".diskyignore");
+        let candidate = cursor.join(".diskerignore");
         if let Ok(contents) = fs::read_to_string(&candidate) {
             for pat in parse(&contents) {
                 if seen.insert(pat.clone()) {
@@ -69,7 +69,7 @@ pub fn load_diskyignore_chain(scan_root: &Path) -> Vec<String> {
     patterns
 }
 
-/// Parse a `.diskyignore` file body. Lenient — malformed lines are dropped
+/// Parse a `.diskerignore` file body. Lenient — malformed lines are dropped
 /// rather than producing errors.
 fn parse(body: &str) -> Vec<String> {
     let mut out = Vec::new();
@@ -110,16 +110,16 @@ mod tests {
         let dir = tempdir().unwrap();
         // Set HOME to the tempdir so the walk stops immediately.
         std::env::set_var("HOME", dir.path());
-        let patterns = load_diskyignore_chain(dir.path());
+        let patterns = load_diskerignore_chain(dir.path());
         assert!(patterns.is_empty());
     }
 
     #[test]
     fn single_file_parsed() {
         let dir = tempdir().unwrap();
-        fs::write(dir.path().join(".diskyignore"), "foo\nbar\n").unwrap();
+        fs::write(dir.path().join(".diskerignore"), "foo\nbar\n").unwrap();
         std::env::set_var("HOME", dir.path());
-        let patterns = load_diskyignore_chain(dir.path());
+        let patterns = load_diskerignore_chain(dir.path());
         assert!(patterns.contains(&"foo".to_string()));
         assert!(patterns.contains(&"bar".to_string()));
     }
@@ -128,9 +128,9 @@ mod tests {
     fn comments_and_blanks_skipped() {
         let dir = tempdir().unwrap();
         let body = "# header\n\nfoo\n   \n# trailing\nbar\n";
-        fs::write(dir.path().join(".diskyignore"), body).unwrap();
+        fs::write(dir.path().join(".diskerignore"), body).unwrap();
         std::env::set_var("HOME", dir.path());
-        let patterns = load_diskyignore_chain(dir.path());
+        let patterns = load_diskerignore_chain(dir.path());
         assert_eq!(patterns, vec!["foo".to_string(), "bar".to_string()]);
     }
 
@@ -139,9 +139,9 @@ mod tests {
         // Globs / negation are not yet supported; the parser must not panic.
         let dir = tempdir().unwrap();
         let body = "*.log\n!keepme\n? maybe\nok_pattern\n";
-        fs::write(dir.path().join(".diskyignore"), body).unwrap();
+        fs::write(dir.path().join(".diskerignore"), body).unwrap();
         std::env::set_var("HOME", dir.path());
-        let patterns = load_diskyignore_chain(dir.path());
+        let patterns = load_diskerignore_chain(dir.path());
         assert_eq!(patterns, vec!["ok_pattern".to_string()]);
     }
 
@@ -151,11 +151,11 @@ mod tests {
         let parent = root.path().join("parent");
         let child = parent.join("child");
         fs::create_dir_all(&child).unwrap();
-        fs::write(parent.join(".diskyignore"), "parent_pat\n").unwrap();
-        fs::write(child.join(".diskyignore"), "child_pat\n").unwrap();
+        fs::write(parent.join(".diskerignore"), "parent_pat\n").unwrap();
+        fs::write(child.join(".diskerignore"), "child_pat\n").unwrap();
         std::env::set_var("HOME", root.path());
 
-        let patterns = load_diskyignore_chain(&child);
+        let patterns = load_diskerignore_chain(&child);
         assert!(patterns.contains(&"child_pat".to_string()));
         assert!(patterns.contains(&"parent_pat".to_string()));
     }
