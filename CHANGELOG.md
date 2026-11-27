@@ -7,6 +7,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **Linux and Windows** (REQ-XPLAT-*): the CLI, engine and desktop app run on
+  macOS, Linux (glibc) and Windows (MSVC) with the same commands, envelopes
+  and safety rules. Paths are stored `/`-separated on every OS. Each OS has its
+  own cleanup locations, data directory, disk-space probe, file locks and
+  open/reveal. Cleanup moves files to the freedesktop Trash on Linux and the
+  Recycle Bin on Windows, and `disky restore` brings them back.
+- CI runs fmt, clippy and the tests on macOS, Ubuntu and Windows, and builds
+  the desktop bundles for Linux (.deb, AppImage) and Windows (NSIS).
+- Releases add `x86_64` and `aarch64` Linux tarballs and an `x86_64` Windows zip.
+- Desktop app (`gui/`, Tauri + SolidJS): Smart Clean, Space map, Large files,
+  Duplicates, Assistant, History and Settings, all on the engine. New CLI
+  commands back each screen: `map`, `large`, `dupes`, `trash`, `agents`,
+  `suggest`.
+
+### Changed
+- The project moved to `github.com/selvakumarEsra/disker`.
+- The minimum supported Rust version is 1.85.1, which the bundled DuckDB
+  already required. On Windows, building needs the Visual Studio 2022 C++
+  build tools.
+
 ### Changed
 - **Behaviour change:** `disky cleanup` now leaves out anything modified in
   the last 30 days by default (`skip_recently_used`). Run

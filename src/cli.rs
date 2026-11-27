@@ -3,7 +3,11 @@ use clap::{Parser, Subcommand, ValueEnum};
 use disky::render::Format;
 
 #[derive(Parser)]
-#[command(name = "disky", about = "Fast macOS disk analyzer", version)]
+#[command(
+    name = "disky",
+    about = "Fast disk analyzer and cleanup CLI for macOS, Linux and Windows",
+    version
+)]
 pub struct Cli {
     /// Output format. Auto = JSON when stdout is piped, text on a TTY.
     #[arg(long, value_enum, global = true)]

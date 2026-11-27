@@ -1,6 +1,6 @@
 # disky
 
-Fast disk analyzer and cleanup CLI in Rust for macOS, Linux and Windows — `ncdu` / `dust` / GrandPerspective alternative.
+Fast disk analyzer and cleanup CLI in Rust for macOS, Linux and Windows, with a Tauri desktop app — `ncdu` / `dust` / GrandPerspective alternative. Repo: `github.com/selvakumarEsra/disker`.
 
 ## Platforms (specs/cross-platform.md, REQ-XPLAT-*)
 
@@ -20,7 +20,7 @@ syscall.
   `XDG_DATA_HOME` to the temp home.
 - **Default scan root**: `/`, or `%SystemDrive%/` on Windows.
 - **Disk space**: `statvfs` (Unix), `GetDiskFreeSpaceExW` (Windows).
-- **Locks**: `flock` (Unix) and `LockFileEx` (Windows) in `history::Lock` — not `std::fs::File::lock`, which needs Rust 1.89 (MSRV is 1.75).
+- **Locks**: `flock` (Unix) and `LockFileEx` (Windows) in `history::Lock` — not `std::fs::File::lock`, which needs Rust 1.89 (MSRV is 1.85.1, set by the bundled DuckDB).
 - **Cleanup locations**: `cleanup::{MACOS,LINUX,WINDOWS}_LOCATIONS`, picked
   by `OS_LOCATIONS`; `ScanContext.locations` overrides it (tests use
   `MACOS_LOCATIONS` so synthetic macOS homes work on every OS). Same
@@ -63,7 +63,7 @@ Five indexable surfaces — `disky schema` + JSON envelopes are the agent contra
 | Releases | `github.com/selvakumarEsra/disker/releases` | macOS, Linux tarballs and a Windows zip per tag |
 | GitHub Pages | `selvakumaresra.github.io/disker` | source: `main` `/docs`, `.nojekyll` bypass + `docs/index.html` (brut palette) |
 
-Install order in README is the order to recommend: `cargo install disky` → binary download → `cargo install --git`. Homebrew tap is not offered yet (earn-back: someone actually asks).
+Install order in README is the order to recommend: binary download → `cargo install --git https://github.com/selvakumarEsra/disker`. The `disky` crate on crates.io is the original project's (no Linux/Windows/GUI work), so it is not recommended. Homebrew tap is not offered yet (earn-back: someone actually asks).
 
 ## Snapshot diff
 

@@ -2,17 +2,17 @@
 name = "disky"
 version = "0.11.0"
 edition = "2021"
-description = "Fast macOS disk analyzer and cleanup CLI in Rust — ncdu / dust / GrandPerspective alternative with snapshot diff, agent-native JSON, and Trash-restorable cleanup."
+description = "Fast disk analyzer and cleanup CLI for macOS, Linux and Windows — ncdu / dust / GrandPerspective alternative with snapshot diff, agent-native JSON, and Trash-restorable cleanup."
 license = "MIT OR Apache-2.0"
 repository = "https://github.com/selvakumarEsra/disker"
 homepage = "https://selvakumaresra.github.io/disker"
 documentation = "https://docs.rs/disky"
-keywords = ["disk-usage", "disk-analyzer", "ncdu", "macos", "cli"]
+keywords = ["disk-usage", "disk-analyzer", "ncdu", "cleanup", "cli"]
 categories = ["command-line-utilities", "filesystem"]
 readme = "README.md"
 # The desktop GUI is a separate Tauri build with its own workspace.
 exclude = ["gui"]
-rust-version = "1.75"
+rust-version = "1.85.1"
 
 [lib]
 name = "disky"

@@ -2,11 +2,11 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<title>disky — Fast macOS disk analyzer and cleanup CLI</title>
-<meta name="description" content="Fast macOS disk analyzer and cleanup CLI in Rust. Scan 2M files in seconds, Trash-restorable cleanup, agent-native JSON. Alternative to ncdu, dust, du, GrandPerspective, DaisyDisk.">
+<title>disky — Fast disk analyzer and cleanup for macOS, Linux and Windows</title>
+<meta name="description" content="Fast disk analyzer and cleanup CLI for macOS, Linux and Windows, in Rust, with a desktop app. Snapshot diff, Trash-restorable cleanup, agent-native JSON. Alternative to ncdu, dust, du, GrandPerspective, DaisyDisk.">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<meta property="og:title" content="disky — Fast macOS disk analyzer and cleanup CLI">
-<meta property="og:description" content="Fast macOS disk analyzer and cleanup CLI in Rust. ncdu / dust / GrandPerspective alternative.">
+<meta property="og:title" content="disky — Fast disk analyzer and cleanup for macOS, Linux and Windows">
+<meta property="og:description" content="Fast disk analyzer and cleanup CLI in Rust for macOS, Linux and Windows. ncdu / dust / GrandPerspective alternative.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://selvakumaresra.github.io/disker/">
 <link rel="canonical" href="https://selvakumaresra.github.io/disker/">
@@ -66,11 +66,11 @@
 <div class="wrap">
 
 <h1>disky</h1>
-<p class="tagline">Fast macOS disk analyzer and cleanup CLI in Rust.</p>
+<p class="tagline">Fast disk analyzer and cleanup for macOS, Linux and Windows, in Rust.</p>
 
 <p>
-  Scan 2&nbsp;million files in seconds, diff snapshots, cleanup safely (Trash-restorable),
-  and pipe JSON to any agent. Alternative to <code>ncdu</code>, <code>dust</code>,
+  Scan 2&nbsp;million files in minutes, diff snapshots, clean up safely into the Trash
+  and restore later, pipe JSON to any agent, or use the desktop app. Alternative to <code>ncdu</code>, <code>dust</code>,
   <code>du</code>, GrandPerspective, DaisyDisk &mdash; built for the terminal AND for
   AI agents that shell out.
 </p>
@@ -78,19 +78,26 @@
 <div class="links">
   <a href="https://github.com/selvakumarEsra/disker">GitHub repo</a>
   <a href="https://github.com/selvakumarEsra/disker/releases">Releases</a>
-  <a href="https://crates.io/crates/disky">crates.io</a>
-  <a href="https://docs.rs/disky">docs.rs</a>
   <a href="https://github.com/selvakumarEsra/disker/blob/main/CHANGELOG.md">Changelog</a>
 </div>
 
 <h2 data-num="01">Install</h2>
-<pre><code>cargo install disky</code></pre>
+<pre><code>cargo install --git https://github.com/selvakumarEsra/disker</code></pre>
+<p>
+  Or download a binary from <a href="https://github.com/selvakumarEsra/disker/releases">Releases</a>:
+  macOS and Linux tarballs (x86_64 and aarch64) and a Windows zip (x86_64).
+  On Windows, building from source needs the Visual Studio 2022 C++ build tools.
+</p>
 
 <h2 data-num="02">Quick start</h2>
 <pre><code>disky scan /                   # scan from root (~3 min, 2M files)
 disky                          # ncdu-style TUI
 disky top --physical           # largest files (APFS-aware)
-disky cleanup --apply --reversible    # safe cleanup → ~/.Trash</code></pre>
+disky cleanup --apply --reversible    # safe cleanup → Trash / Recycle Bin
+disky history                  # every applied clean
+disky restore &lt;id&gt;             # put it back
+disky dupes                    # byte-identical files
+disky large                    # files of 2 GB and over</code></pre>
 
 <h2 data-num="03">Why disky</h2>
 <table>
@@ -101,6 +108,7 @@ disky cleanup --apply --reversible    # safe cleanup → ~/.Trash</code></pre>
     <tr><td>Trash-safe cleanup</td><td>yes</td><td>—</td><td>—</td><td>—</td></tr>
     <tr><td>APFS sparse-file aware</td><td>yes</td><td>—</td><td>—</td><td>—</td></tr>
     <tr><td>JSON for agents</td><td>yes</td><td>—</td><td>—</td><td>—</td></tr>
+    <tr><td>Desktop app</td><td>yes</td><td>—</td><td>—</td><td>—</td></tr>
   </tbody>
 </table>
 
@@ -109,6 +117,27 @@ disky cleanup --apply --reversible    # safe cleanup → ~/.Trash</code></pre>
   Every command emits an envelope <code>{schema_version, kind, records}</code>. Errors on
   stderr follow RFC&nbsp;9457. Exit codes are stable. Run <code>disky schema</code> for
   the machine descriptor.
+</p>
+
+<h2 data-num="05">Every platform</h2>
+<table>
+  <thead><tr><th></th><th>Trash</th><th>Data directory</th></tr></thead>
+  <tbody>
+    <tr><td>macOS</td><td><code>~/.Trash</code></td><td><code>~/Library/Application Support/disky</code></td></tr>
+    <tr><td>Linux</td><td>freedesktop Trash</td><td><code>~/.local/share/disky</code></td></tr>
+    <tr><td>Windows</td><td>Recycle Bin</td><td><code>%LOCALAPPDATA%\disky</code></td></tr>
+  </tbody>
+</table>
+<p>
+  Same commands, envelopes and safety rules on all three, tested in CI on every push.
+</p>
+
+<h2 data-num="06">Desktop app</h2>
+<p>
+  A Tauri + SolidJS app on the same engine: Smart Clean, Space map, Large files,
+  Duplicates, Assistant, History and Settings. It never deletes anything itself;
+  everything it does, the CLI can do too. Build it with
+  <code>cd gui &amp;&amp; npm install &amp;&amp; npm run tauri build</code>.
 </p>
 
 <footer>
