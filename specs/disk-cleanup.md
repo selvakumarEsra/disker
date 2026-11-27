@@ -1128,7 +1128,7 @@ verifies:
 <!-- id: REQ-DCLEAN-030.A1 -->
 - The idle phase is interactive within the initial-render budget after launch, using the newest existing snapshot without re-scanning, within 1 s.
 <!-- id: REQ-DCLEAN-030.A2 -->
-- Selection toggles, expand/collapse, and the footer total update within 100 ms.
+- Selection toggles, expand/collapse, and the footer total update within 100 ms, measured as the median of five runs of each.
 <!-- id: REQ-DCLEAN-030.A3 -->
 - The results phase renders categories with up to 200 items per category without blocking input; beyond 200, the list shows the largest 200 and a "+N more" line.
 <!-- id: REQ-DCLEAN-030.A4 -->
