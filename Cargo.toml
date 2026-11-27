@@ -1,6 +1,6 @@
 [package]
 name = "disker"
-version = "0.12.0"
+version = "0.13.0"
 edition = "2021"
 description = "Fast disk analyzer and cleanup CLI for macOS, Linux and Windows — ncdu / dust / GrandPerspective alternative with snapshot diff, agent-native JSON, and Trash-restorable cleanup."
 license = "MIT OR Apache-2.0"
