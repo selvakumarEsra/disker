@@ -1,0 +1,183 @@
+use anyhow::Result;
+use duckdb::Connection;
+
+/// Open a snapshot for writing (scans). DuckDB takes an exclusive lock:
+/// nothing else, in any process, can open the file until this closes.
+pub fn open(path: &str) -> Result<Connection> {
+    let conn = Connection::open(path)?;
+    let cpus = num_cpus::get();
+    conn.execute_batch(&format!("PRAGMA threads={cpus};"))?;
+    Ok(conn)
+}
+
+/// Open a finished snapshot for queries. Read-only opens share the file
+/// lock, so the GUI's background checks, its screens and the CLI can all
+/// read the same snapshot at once instead of failing with `lock-held`.
+/// Temporary tables still work (they live outside the file).
+pub fn open_read(path: &str) -> Result<Connection> {
+    let config = duckdb::Config::default().access_mode(duckdb::AccessMode::ReadOnly)?;
+    let conn = Connection::open_with_flags(path, config)?;
+    let cpus = num_cpus::get();
+    conn.execute_batch(&format!("PRAGMA threads={cpus};"))?;
+    Ok(conn)
+}
+
+pub fn create_schema(conn: &Connection) -> Result<()> {
+    conn.execute_batch(
+        "
+        DROP TABLE IF EXISTS files;
+        CREATE TABLE files (
+            path           TEXT NOT NULL,
+            name           TEXT NOT NULL,
+            ext            TEXT,
+            size           BIGINT NOT NULL DEFAULT 0,
+            physical_size  BIGINT,
+            mtime          BIGINT,
+            is_dir         BOOLEAN NOT NULL DEFAULT false,
+            depth          INTEGER NOT NULL DEFAULT 0,
+            atime          BIGINT
+        );
+        DROP TABLE IF EXISTS scan_meta;
+        CREATE TABLE scan_meta (
+            root         TEXT NOT NULL,
+            started_at   BIGINT NOT NULL,
+            ended_at     BIGINT,
+            completed    BOOLEAN NOT NULL DEFAULT false,
+            entries      BIGINT NOT NULL DEFAULT 0,
+            bytes        BIGINT NOT NULL DEFAULT 0,
+            skipped      BIGINT NOT NULL DEFAULT 0
+        );
+    ",
+    )?;
+    Ok(())
+}
+
+#[allow(clippy::too_many_arguments)]
+pub fn write_scan_meta(
+    conn: &Connection,
+    root: &str,
+    started_at: i64,
+    ended_at: Option<i64>,
+    completed: bool,
+    entries: u64,
+    bytes: u64,
+) -> Result<()> {
+    conn.execute("DELETE FROM scan_meta", [])?;
+    conn.execute(
+        "INSERT INTO scan_meta (root, started_at, ended_at, completed, entries, bytes)
+         VALUES (?, ?, ?, ?, ?, ?)",
+        duckdb::params![
+            root,
+            started_at,
+            ended_at,
+            completed,
+            entries as i64,
+            bytes as i64
+        ],
+    )?;
+    Ok(())
+}
+
+#[derive(Debug, Clone)]
+pub struct ScanMeta {
+    pub root: String,
+    pub started_at: i64,
+    pub ended_at: Option<i64>,
+    pub completed: bool,
+    pub entries: u64,
+    pub bytes: u64,
+}
+
+impl ScanMeta {
+    pub fn duration_secs(&self) -> Option<i64> {
+        self.ended_at.map(|e| (e - self.started_at).max(0))
+    }
+}
+
+/// Record how many paths the scan could not read for permission reasons
+/// (REQ-DCLEAN-018.A2). Call after [`write_scan_meta`].
+pub fn write_scan_skipped(conn: &Connection, skipped: u64) -> Result<()> {
+    conn.execute("UPDATE scan_meta SET skipped = ?", [skipped as i64])?;
+    Ok(())
+}
+
+/// Paths the snapshot's scan skipped for permission reasons. 0 for a
+/// snapshot written before the count existed.
+pub fn read_scan_skipped(conn: &Connection) -> u64 {
+    conn.query_row("SELECT skipped FROM scan_meta LIMIT 1", [], |r| {
+        r.get::<_, i64>(0)
+    })
+    .map_or(0, |n| n.max(0) as u64)
+}
+
+pub fn read_scan_meta(conn: &Connection) -> Option<ScanMeta> {
+    let mut stmt = conn
+        .prepare(
+            "SELECT root, started_at, ended_at, completed, entries, bytes FROM scan_meta LIMIT 1",
+        )
+        .ok()?;
+    stmt.query_row([], |row| {
+        Ok(ScanMeta {
+            root: row.get::<_, String>(0)?,
+            started_at: row.get::<_, i64>(1)?,
+            ended_at: row.get::<_, Option<i64>>(2)?,
+            completed: row.get::<_, bool>(3)?,
+            entries: row.get::<_, i64>(4)? as u64,
+            bytes: row.get::<_, i64>(5)? as u64,
+        })
+    })
+    .ok()
+}
+
+pub fn build_indexes(conn: &Connection) -> Result<()> {
+    conn.execute_batch(
+        "
+        CREATE INDEX idx_size ON files(size DESC);
+        CREATE INDEX idx_ext  ON files(ext);
+        CREATE INDEX idx_path ON files(path);
+        CREATE INDEX idx_name ON files(name);
+        ANALYZE;
+    ",
+    )?;
+    Ok(())
+}
+
+pub struct FileRecord {
+    pub path: String,
+    pub name: String,
+    pub ext: Option<String>,
+    /// Logical size (`st_size`). On macOS this can wildly exceed physical
+    /// for APFS clones and sparse files (OrbStack disk images, Time Machine
+    /// local snapshots, qcow2 backings).
+    pub size: i64,
+    /// Physical bytes on disk = `st_blocks * 512`. Matches `du`'s accounting.
+    /// `None` for directories or when stat doesn't expose it (Windows TBD).
+    pub physical_size: Option<i64>,
+    pub mtime: Option<i64>,
+    pub is_dir: bool,
+    pub depth: i32,
+    /// Last access time (`st_atime`, unix seconds) — the Large files screen's
+    /// "last opened" (REQ-DSCR-004.A1). APFS updates it lazily, so it is
+    /// approximate. The last column, since [`append_batch`] appends by
+    /// position.
+    pub atime: Option<i64>,
+}
+
+pub fn append_batch(conn: &Connection, records: &[FileRecord]) -> Result<()> {
+    let mut app = conn.appender("files")?;
+    for r in records {
+        app.append_row(duckdb::params![
+            r.path,
+            r.name,
+            r.ext,
+            r.size,
+            r.physical_size,
+            r.mtime,
+            r.is_dir,
+            r.depth,
+            r.atime,
+        ])?;
+    }
+    app.flush()?;
+    Ok(())
+}

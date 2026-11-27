@@ -1,0 +1,24 @@
+/target
+*.db
+auto
+dist/
+.claude/
+# metrics/*.json IS committed (trend visible in git history).
+# Only ignore raw nextest scratch + tmp tree paths.
+/tmp/
+
+bilimanager
+
+# Local-only scratch (QA screenshots from doqa, ad-hoc HTML copies). Never committed.
+# Use docs/ for committed artifacts.
+.docs/
+.DS_Store
+
+# Desktop GUI (gui/) build outputs
+gui/node_modules
+gui/dist
+gui/src-tauri/target
+gui/src-tauri/gen
+gui/test-results
+gui/playwright-report
+gui/tests/visual/__baseline__
